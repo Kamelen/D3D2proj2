@@ -1,0 +1,66 @@
+﻿Build started 2013-08-08 18:52:51.
+     1>Project "C:\Users\DämpaDig\Desktop\shadowmaps\shadows\Code\Template.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "C:\Users\DämpaDig\Desktop\shadowmaps\shadows\Code\../Obj/x64/Debug/Template.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       _FXC:
+         Compiling HLSL shaders using FXC...
+         cmd.exe /C "C:\Users\DämpaDig\AppData\Local\Temp\36904e9272844811abe9eb698946c065.cmd"
+         fxc.exe /Cc /T fx_5_0 /Ges       ..\Bin\Shaders\Basic.fx
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(79,18): warning X3206: 'mul': implicit truncation of vector type
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(79,16): warning X3206: implicit truncation of vector type
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(91,25): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(91,27): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(91,29): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(92,20): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(92,22): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(92,24): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(93,17): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(93,19): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(93,21): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(94,17): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(94,19): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(94,21): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(95,17): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(95,19): warning X3081: comma expression used where a vector constructor may have been intended
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\Basic.fx(95,21): warning X3081: comma expression used where a vector constructor may have been intended
+         
+       _FXC:
+         Compiling HLSL shaders using FXC...
+         cmd.exe /C "C:\Users\DämpaDig\AppData\Local\Temp\f5bf326c5f294053b0942fa0fdaa0ef3.cmd"
+         fxc.exe /Cc /T fx_5_0 /Ges       ..\Bin\Shaders\BasicShadows.fx
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\BasicShadows.fx(56,18): warning X3206: 'mul': implicit truncation of vector type
+     1>C:\Users\D?mpaDig\Desktop\shadowmaps\shadows\Bin\Shaders\BasicShadows.fx(56,16): warning X3206: implicit truncation of vector type
+         
+       _FXC:
+         Compiling HLSL shaders using FXC...
+         cmd.exe /C "C:\Users\DämpaDig\AppData\Local\Temp\c864520140b142e89ec821ecb885dc32.cmd"
+         fxc.exe /Cc /T fx_5_0 /Ges       ..\Bin\Shaders\Cloud.fx
+       _FXC:
+         Compiling HLSL shaders using FXC...
+         cmd.exe /C "C:\Users\DämpaDig\AppData\Local\Temp\c2d97766b87a4e14a45062de861ef93f.cmd"
+         fxc.exe /Cc /T fx_5_0 /Ges       ..\Bin\Shaders\Fire.fx
+       _FXC:
+         Compiling HLSL shaders using FXC...
+         cmd.exe /C "C:\Users\DämpaDig\AppData\Local\Temp\2fb86a389a814579a063ba2a5e937d6b.cmd"
+         fxc.exe /Cc /T fx_5_0 /Ges       ..\Bin\Shaders\Rain.fx
+       _FXC:
+         Compiling HLSL shaders using FXC...
+         cmd.exe /C "C:\Users\DämpaDig\AppData\Local\Temp\ce3dd697f9ee472291dbc989b5c98008.cmd"
+         fxc.exe /Cc /T fx_5_0 /Ges       ..\Bin\Shaders\shadowMapping.fx
+       ClCompile:
+         All outputs are up-to-date.
+       ManifestResourceCompile:
+         All outputs are up-to-date.
+       Link:
+         All outputs are up-to-date.
+         Template.vcxproj -> C:\Users\DämpaDig\Desktop\shadowmaps\shadows\Code\../Bin/x64/TemplateD.exe
+       Manifest:
+         All outputs are up-to-date.
+       FinalizeBuildStatus:
+         Deleting file "C:\Users\DämpaDig\Desktop\shadowmaps\shadows\Code\../Obj/x64/Debug/Template.unsuccessfulbuild".
+         Touching "C:\Users\DämpaDig\Desktop\shadowmaps\shadows\Code\../Obj/x64/Debug/Template.lastbuildstate".
+     1>Done Building Project "C:\Users\DämpaDig\Desktop\shadowmaps\shadows\Code\Template.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.50

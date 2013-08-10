@@ -1,0 +1,88 @@
+newmtl default3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 0.80 0.80 0.80
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00
+newmtl default_cruiser_defense
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00
+newmtl default_fire_engines
+illum 4
+Kd 0.00 1.00 1.00
+Ka 0.00 1.00 1.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00
+newmtl default_gate
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00
+newmtl default_ship_endoskeleton
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00
+newmtl default_ship_exoskeleton
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00
+newmtl default_ship_protetion_grid
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00
+newmtl default_vent_rear
+illum 4
+Kd 0.10 0.09 0.08
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00
+newmtl material_1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00
+newmtl material_3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00
+newmtl material_5
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+Ks 1.00 1.00 1.00
+Ns 1.00

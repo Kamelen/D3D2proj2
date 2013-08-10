@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{5a019eb5-8829-4938-a79d-34e625c72da3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{440e2749-4e29-4e27-86e4-c3168257b224}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TemplateMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WinHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="program.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D11Handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseParticle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Fire.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Cloud.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OBJReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalLights.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Buffer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D11Handler.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DObject.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="program.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="WinHandler.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseParticle.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticlePolicy.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Rain.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Fire.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Cloud.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJReader.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowMap.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalLights.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FXC Include="..\Bin\Shaders\Basic.fx">
+      <Filter>Shaders</Filter>
+    </FXC>
+    <FXC Include="..\Bin\Shaders\Rain.fx">
+      <Filter>Shaders</Filter>
+    </FXC>
+    <FXC Include="..\Bin\Shaders\Fire.fx">
+      <Filter>Shaders</Filter>
+    </FXC>
+    <FXC Include="..\Bin\Shaders\Cloud.fx">
+      <Filter>Shaders</Filter>
+    </FXC>
+    <FXC Include="..\Bin\Shaders\shadowMapping.fx">
+      <Filter>Shaders</Filter>
+    </FXC>
+    <FXC Include="..\Bin\Shaders\BasicShadows.fx">
+      <Filter>Shaders</Filter>
+    </FXC>
+  </ItemGroup>
+</Project>
