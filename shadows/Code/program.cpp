@@ -48,6 +48,8 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	input = new Input();
 	pSys = new ParticleSystem();
 
+	pSys->addRain(this->deviceContext,this->device,"Rain.fx",D3DXVECTOR3(0,150,0),D3DXVECTOR3(0,-1,0),100,100,1,5000,100,1);
+
 	shadowMap = new ShadowMap(this->device, this->deviceContext,4024, 4024);
 
 
@@ -129,7 +131,7 @@ void program::buildShadowMap(D3DXMATRIX &lightViewProj)
 
 
 	//shadows for terrain
-	/*lightWVP = world * lightViewProj;
+	lightWVP = world * lightViewProj;
 
 	this->map->getVertexBuffer()->Apply();
 	this->map->getIndexBuffer()->Apply();
@@ -137,7 +139,7 @@ void program::buildShadowMap(D3DXMATRIX &lightViewProj)
 	shadowShader->SetMatrix("LightWVP",lightWVP);
 	shadowShader->Apply(0);
 
-	this->deviceContext->DrawIndexed(256*256*6,0,0);*/
+	this->deviceContext->DrawIndexed(256*256*6,0,0);
 	//shadows for terrain
 
 	//shadows for objects
@@ -152,6 +154,7 @@ void program::buildShadowMap(D3DXMATRIX &lightViewProj)
 		this->deviceContext->Draw(this->objects.at(i).getNrOfVertices(),0);
 	}
 	//shadows for objects
+
 
 	this->resetRT();
 }
@@ -220,13 +223,9 @@ void program::render(float deltaTime)
 	this->shader->SetFloat("SMAP_SIZE", 4024);
 	this->shader->SetResource("diffuseMap", map->getTerTexture(0));
 	this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
-
 	this->objects.at(0).getVertexBuffer()->Apply();
 	this->shader->Apply(0);
 	this->deviceContext->Draw(this->objects.at(0).getNrOfVertices(),0);
-
-
-	
 
 
 	if(FAILED(D3D11Handler::swapChain->Present( 0, 0 )))
