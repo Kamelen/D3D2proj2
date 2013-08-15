@@ -10,6 +10,7 @@
 #include "ParticleSystem.h"
 #include "OBJReader.h"
 #include "ShadowMap.h"
+#include "billboard.h"
 
 using namespace std;
 
@@ -29,6 +30,7 @@ private:
 	ParticleSystem *pSys;
 	OBJReader *objReader;
 
+	Billboard *billboardTest;
 
 	Buffer* vBuffer;
 	Vertex* mesh;
@@ -41,15 +43,14 @@ private:
 
 	int nrOfVerts;
 	int nrOfObjects;
+	float texTrans;
 	int update(float deltaTime);
 	void render(float deltaTime);
 	void checkKeyBoard(float deltaTime);
 	void mouseOnMove(WPARAM btnState, int x, int y);
 
 	void buildShadowMap(D3DXMATRIX &lightViewProj);
-
-
-	float switchTime;
-	int apply;
+	
+	bool flyMode;
 };
 

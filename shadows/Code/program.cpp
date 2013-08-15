@@ -3,8 +3,8 @@
 
 program::program(void)
 {
-	this->apply = 0;
-	this->switchTime = 0.0f;
+	flyMode = true;
+	texTrans = 0;
 }
 
 
@@ -14,6 +14,7 @@ program::~program(void)
 	SAFE_DELETE(cam);
 	SAFE_DELETE(input);
 	SAFE_DELETE(pSys);
+	SAFE_DELETE(billboardTest);
 } 
 
 bool program::initiate(HINSTANCE hInstance, int nCmdShow)
@@ -27,7 +28,7 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	{
 		return false;
 	}
-	string textureNames[] = {"Fire.png", "texture02.dds","texture03.dds"};
+	string textureNames[] = {"Fire.png", "koala.png","texture03.dds"};
 	map = new Terrain("cloudy.Raw",256,256,0.5,0,this->device,this->deviceContext,textureNames,"terrainblend.png");
 	
 	D3DXVECTOR3 position = map->getTerrainPos(254,254);
@@ -56,8 +57,17 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 
 	// -------------------------OBJREADER TEST ---------------------------------
 	objReader = new OBJReader();												//
-	mesh = objReader->getOBJfromFile("coolaModellerFixed/alduin.obj", this->nrOfVerts);
+	mesh = new Vertex[6];
 
+	mesh[0] = Vertex(D3DXVECTOR3(-1,1,0),D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,0));
+	mesh[1] = Vertex(D3DXVECTOR3(1,1,0),D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,0));
+	mesh[2] = Vertex(D3DXVECTOR3(-1,-1,0),D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,1));
+	
+	mesh[3] = Vertex(D3DXVECTOR3(-1,-1,0),D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,1));
+	mesh[4] = Vertex(D3DXVECTOR3(1,1,0),D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,0));
+	mesh[5] = Vertex(D3DXVECTOR3(1,-1,0),D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,1));
+	
+	billboardTest = new Billboard(mesh,6,D3DXVECTOR3(0,120,0),this->device,this->deviceContext);
 
 	D3DXMATRIX world, translate;
 	D3DXMatrixScaling(&world,0.1,0.1,0.1);
@@ -70,22 +80,6 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 		this->objects.at(i).initBuffer(this->device,this->deviceContext);
 	}
 	
-	
-	BUFFER_INIT_DESC vertexBufferDesc;											//
- 	vertexBufferDesc.ElementSize = sizeof(Vertex);								//
-	vertexBufferDesc.InitData = mesh;											//
-	vertexBufferDesc.NumElements = this->nrOfVerts;								//
-	vertexBufferDesc.Type = VERTEX_BUFFER;										//
-	vertexBufferDesc.Usage = BUFFER_DEFAULT;									//
-																				//
-	this->vBuffer = new Buffer();												//
-	if(FAILED(this->vBuffer->Init(device, deviceContext, vertexBufferDesc)))	//
-	{																			//
-		return false;															//
-	}																			//
-	//--------------------------OBJREADER TEST ----------------------------------
-
-
 	return true;
 }
 
@@ -103,13 +97,24 @@ int program::update(float deltaTime)
 {
 	//walk
 	D3DXVECTOR3 pos = this->cam->getPosition();
-	//pos.y = this->map->getY(pos.x,pos.z);
+
+	if(!flyMode)
+	{
+		pos.y = this->map->getY(pos.x,pos.z); //följer terrängs Y coord
+	}
+	
 	this->cam->setPos(D3DXVECTOR3((float)pos.x,(float)pos.y,(float)pos.z));
 
 	checkKeyBoard(deltaTime);
 
 	this->pSys->update(this->deviceContext,this->device);
 
+	this->texTrans += 0.01f;
+	if(texTrans > 1.0f)
+	{
+		this->texTrans = 0.0f;
+	}
+	
 	return 0;
 }
 
@@ -169,7 +174,7 @@ void program::render(float deltaTime)
 	view = cam->getView();
 	proj = cam->getProj();
 
-	buildShadowMap(lightViewProj);
+	//buildShadowMap(lightViewProj);
 
 	static float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	D3D11Handler::deviceContext->ClearRenderTargetView( renderTargetView, ClearColor );
@@ -199,6 +204,7 @@ void program::render(float deltaTime)
 	this->shader->SetMatrix("LightWVP", lightWVP);
 
 	this->shader->SetFloat("SMAP_SIZE", 4024);
+	this->shader->SetFloat("texTrans", texTrans);
 	this->shader->SetResource("diffuseMap", map->getTerTexture(0));
 	this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
 
@@ -221,12 +227,21 @@ void program::render(float deltaTime)
 
 	this->shader->SetMatrix("LightWVP", lightWVP);
 	this->shader->SetFloat("SMAP_SIZE", 4024);
-	this->shader->SetResource("diffuseMap", map->getTerTexture(0));
+	this->shader->SetFloat("texTrans", texTrans);
+	this->shader->SetResource("diffuseMap", map->getTerTexture(1));
 	this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
 	this->objects.at(0).getVertexBuffer()->Apply();
 	this->shader->Apply(0);
 	this->deviceContext->Draw(this->objects.at(0).getNrOfVertices(),0);
+	
+	wvp = billboardTest->getUpdatedWorldMat(this->cam->getPosition()) * view * proj;
 
+	this->shader->SetMatrix("W",billboardTest->getUpdatedWorldMat(this->cam->getPosition()));
+	this->shader->SetMatrix("WVP" , wvp);
+	this->shader->SetFloat("texTrans", texTrans);
+	this->shader->Apply(0);
+	billboardTest->getVertexBuffer()->Apply();
+	this->deviceContext->Draw(billboardTest->getNrOfVerts(),0);
 
 	if(FAILED(D3D11Handler::swapChain->Present( 0, 0 )))
 	{
@@ -261,6 +276,18 @@ void program::checkKeyBoard(float deltaTime)
 	if(input->checkKeyDown('D'))
 	{
 		this->cam->strafe(50.0f * deltaTime);
+	}
+
+	if(input->checkKeyDown('P'))
+	{
+		if(flyMode)
+		{
+			flyMode = false;
+		}
+		else
+		{
+			flyMode = true;
+		}
 	}
 }
 

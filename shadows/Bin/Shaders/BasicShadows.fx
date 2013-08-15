@@ -16,7 +16,7 @@ SamplerState textureSampler
 
 RasterizerState NoCulling
 {
-	//CullMode = NONE;
+	CullMode = NONE;
 };
 
 cbuffer EveryFrame
@@ -28,6 +28,7 @@ cbuffer EveryFrame
 	static const float SHADOW_EPSILON = 0.000001f;
 	float SMAP_SIZE;
 
+	float texTrans;
 
 };
 
@@ -64,6 +65,10 @@ PS_INPUT VS( VS_INPUT input )
 //-----------------------------------------------------------------------------------------
 float4 PSScene(PS_INPUT input) : SV_Target
 {	
+	if(texTrans != 5)
+	{
+		input.tex.x += texTrans;	
+	}
 	float4 texColor = diffuseMap.Sample(textureSampler,input.tex);
 	
 	//Project the texture coords and scale/offset to [0, 1].

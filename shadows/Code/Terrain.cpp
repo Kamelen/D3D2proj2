@@ -327,15 +327,6 @@ ID3D11ShaderResourceView* Terrain::getTerTexture(int i) const
 }
 float Terrain::getY(int x, int z)
 {
-	//float halfWidth = (terrainWidth-1) * spacing * 0.5;
-	//float halfDepth = (terrainHeight-1) * spacing * 0.5;
-
-
-	//int i = ((halfDepth) + x) / this->spacing;
-	//int j = ((halfWidth) + z ) / this->spacing;
-
-	//return sampleHeight(i,j) + 40;
-
 
 
 	float halfWidth = (terrainWidth-1) * spacing * 0.5;
