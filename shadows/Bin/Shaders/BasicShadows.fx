@@ -14,6 +14,13 @@ SamplerState textureSampler
 	AddressV = Wrap;
 };
 
+SamplerState cubeSampler
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
+
 RasterizerState NoCulling
 {
 	CullMode = NONE;
@@ -29,11 +36,13 @@ cbuffer EveryFrame
 	float SMAP_SIZE;
 
 	float texTrans;
-
+	float4 cameraPos;
+	bool useCubeMap;
 };
 
 Texture2D diffuseMap;
 Texture2D shadowMap;
+TextureCube cubeMap;
 
 struct VS_INPUT
 {
@@ -69,6 +78,11 @@ float4 PSScene(PS_INPUT input) : SV_Target
 	{
 		input.tex.x += texTrans;	
 	}
+	float3 toEye = normalize(cameraPos.xyz - input.Pos.w);
+	float3 incident = -toEye;
+	float3 reflectionVector = reflect(incident, input.normal);
+	float4 reflectionsColor = cubeMap.Sample(cubeSampler, reflectionVector);
+
 	float4 texColor = diffuseMap.Sample(textureSampler,input.tex);
 	
 	//Project the texture coords and scale/offset to [0, 1].
@@ -94,6 +108,11 @@ float4 PSScene(PS_INPUT input) : SV_Target
 	float2 lerps = frac( texelPos );
 	float shadowCoeff = lerp( lerp( s0, s1, lerps.x ),lerp( s2, s3, lerps.x ),lerps.y );
 	float3 litColor = texColor.rgb * shadowCoeff;
+
+	if(useCubeMap == true)
+	{
+		return reflectionsColor;	
+	}
 
 	return float4(litColor,1);
 }

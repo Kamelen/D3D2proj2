@@ -15,6 +15,7 @@ program::~program(void)
 	SAFE_DELETE(input);
 	SAFE_DELETE(pSys);
 	SAFE_DELETE(billboardTest);
+	SAFE_DELETE(cubeMap);
 } 
 
 bool program::initiate(HINSTANCE hInstance, int nCmdShow)
@@ -52,8 +53,7 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	pSys->addRain(this->deviceContext,this->device,"Rain.fx",D3DXVECTOR3(0,150,0),D3DXVECTOR3(0,-1,0),100,100,1,5000,100,1);
 
 	shadowMap = new ShadowMap(this->device, this->deviceContext,4024, 4024);
-
-
+	cubeMap = new Cubemap(256,D3DXVECTOR3(0,0,0),this->device);
 
 	// -------------------------OBJREADER TEST ---------------------------------
 	objReader = new OBJReader();												//
@@ -104,18 +104,69 @@ int program::update(float deltaTime)
 	}
 	
 	this->cam->setPos(D3DXVECTOR3((float)pos.x,(float)pos.y,(float)pos.z));
-
+	//this->cubeMap->updateCameraPos(pos);
 	checkKeyBoard(deltaTime);
 
 	this->pSys->update(this->deviceContext,this->device);
 
-	this->texTrans += 0.01f;
+	//this->texTrans += 0.01f;
 	if(texTrans > 1.0f)
 	{
 		this->texTrans = 0.0f;
 	}
 	
 	return 0;
+}
+
+void program::buildCubeMap(D3DXMATRIX &lightViewProj)
+{
+	ID3D11RenderTargetView* renderTargets[1];
+	static float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	D3DXMATRIX world, lightWVP, view, proj, wvp;
+	Camera* currCam;
+	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	deviceContext->RSSetViewports(1, &cubeMap->getViewport());
+	for(int i = 0; i < 6; ++i)
+	{
+		//clear
+		deviceContext->ClearRenderTargetView(cubeMap->getRT(i),ClearColor);
+		deviceContext->ClearDepthStencilView(cubeMap->getStencilView(),D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,1.0f,0);
+		
+		//bind
+		renderTargets[0] = cubeMap->getRT(i);
+		deviceContext->OMSetRenderTargets(1,renderTargets,cubeMap->getStencilView());
+
+		//draw to fill the resourceview
+		
+		//get cams view and proj
+		currCam = cubeMap->getCam(i);
+		
+		view = currCam->getView();
+		proj = currCam->getProj();
+		D3DXMatrixIdentity(&world);
+		wvp = world * view * proj;
+		this->map->getVertexBuffer()->Apply();
+		this->map->getIndexBuffer()->Apply();
+		this->shader->SetMatrix("WVP" , wvp);
+		this->shader->SetMatrix("W", world);
+
+		lightWVP = world * lightViewProj;
+
+		this->shader->SetMatrix("LightWVP", lightWVP);
+
+		this->shader->SetFloat("SMAP_SIZE", 4024);
+		this->shader->SetFloat("texTrans", texTrans);
+		this->shader->SetBool("useCubeMap",false);
+		this->shader->SetResource("diffuseMap", map->getTerTexture(1));
+		this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
+
+		this->shader->Apply(0);
+		this->deviceContext->DrawIndexed(256*256*6,0,0);
+		
+	}
+
+	this->resetRT();
 }
 
 void program::buildShadowMap(D3DXMATRIX &lightViewProj)
@@ -175,6 +226,7 @@ void program::render(float deltaTime)
 	proj = cam->getProj();
 
 	//buildShadowMap(lightViewProj);
+	buildCubeMap(lightViewProj);
 
 	static float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	D3D11Handler::deviceContext->ClearRenderTargetView( renderTargetView, ClearColor );
@@ -205,8 +257,11 @@ void program::render(float deltaTime)
 
 	this->shader->SetFloat("SMAP_SIZE", 4024);
 	this->shader->SetFloat("texTrans", texTrans);
+	this->shader->SetBool("useCubeMap", false);
+	this->shader->SetFloat4("cameraPos",D3DXVECTOR4(cam->getPosition(),0));
 	this->shader->SetResource("diffuseMap", map->getTerTexture(0));
 	this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
+	this->shader->SetResource("cubeMap", cubeMap->getCubemap());
 
 	this->shader->Apply(0);
 	this->deviceContext->DrawIndexed(256*256*6,0,0);
@@ -228,8 +283,11 @@ void program::render(float deltaTime)
 	this->shader->SetMatrix("LightWVP", lightWVP);
 	this->shader->SetFloat("SMAP_SIZE", 4024);
 	this->shader->SetFloat("texTrans", texTrans);
-	this->shader->SetResource("diffuseMap", map->getTerTexture(1));
+	this->shader->SetBool("useCubeMap", true);
+	this->shader->SetFloat4("cameraPos",D3DXVECTOR4(cam->getPosition(),0));
+	this->shader->SetResource("diffuseMap", map->getTerTexture(0));
 	this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
+	this->shader->SetResource("cubeMap", cubeMap->getCubemap());
 	this->objects.at(0).getVertexBuffer()->Apply();
 	this->shader->Apply(0);
 	this->deviceContext->Draw(this->objects.at(0).getNrOfVertices(),0);
