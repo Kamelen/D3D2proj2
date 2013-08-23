@@ -16,9 +16,10 @@ SamplerState textureSampler
 
 SamplerState cubeSampler
 {
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
+	Filter = ANISOTROPIC;
+	MaxAnisotropy = 16;
+	AddressU = WRAP;
+	AddressV = WRAP;
 };
 
 RasterizerState NoCulling
@@ -57,6 +58,7 @@ struct PS_INPUT
 	float3 normal:NORMAL;
 	float2 tex:TEXCOORD1;
 	float4 posLightH : TEXCOORD3;
+	float4 PosW : POSITION;
 };
 
 PS_INPUT VS( VS_INPUT input )
@@ -66,6 +68,7 @@ PS_INPUT VS( VS_INPUT input )
 	output.normal = mul(input.Normal,W);    
 	output.tex = input.tex;
 	output.posLightH = mul(float4(input.Pos,1.0f), LightWVP);
+	output.PosW = mul(float4(input.Pos,1.0f), W);
 	return output;
 }
 
@@ -78,12 +81,12 @@ float4 PSScene(PS_INPUT input) : SV_Target
 	{
 		input.tex.x += texTrans;	
 	}
-	float3 toEye = normalize(cameraPos.xyz - input.Pos.w);
+	float3 toEye = normalize(cameraPos.xyz - input.PosW.xyz);
 	float3 incident = -toEye;
-	float3 reflectionVector = reflect(incident, input.normal);
-	float4 reflectionsColor = cubeMap.Sample(cubeSampler, reflectionVector);
+	float3 reflectionVector = reflect(incident, normalize(input.normal));
+	float4 reflectionsColor = cubeMap.Sample(cubeSampler, normalize(reflectionVector));
 
-	float4 texColor = diffuseMap.Sample(textureSampler,input.tex);
+	float4 texColor = diffuseMap.Sample(textureSampler, input.tex);
 	
 	//Project the texture coords and scale/offset to [0, 1].
 	input.posLightH.xy /= input.posLightH.w;

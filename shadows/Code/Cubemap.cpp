@@ -104,34 +104,34 @@ Cubemap::Cubemap(int cubeSize, D3DXVECTOR3 position, ID3D11Device* device)
 	float x,y,z;
 
 	D3DXVECTOR3 centerPos = position;
-	D3DXVECTOR3 look[6] =
+	D3DXVECTOR3 look[6] = 
 	{
-		D3DXVECTOR3(1.0f,0,0), //+x	
-		D3DXVECTOR3(-1.0f,0,0), //-x
-		D3DXVECTOR3(0,1.0f,0), //+y
-		D3DXVECTOR3(0,-1.0f,0), //-y
-		D3DXVECTOR3(0,0,1.0f), //+z	
-		D3DXVECTOR3(0,0,-1.0f), //-z
+		D3DXVECTOR3(1.0f, 0, 0), 
+		D3DXVECTOR3(-1.0f, 0, 0), 
+		D3DXVECTOR3(0, 1.0f, 0), 
+		D3DXVECTOR3(0, -1.0f, 0), 
+		D3DXVECTOR3(0, 0, 1.0f), 
+		D3DXVECTOR3(0, 0, -1.0f), 
 	};
-	
-	D3DXVECTOR3 right[6] =
-	{
-		D3DXVECTOR3(0,0,1.0f), //+x	
-		D3DXVECTOR3(0,0,-1.0f), //-x
-		D3DXVECTOR3(1.0f,0,0), //+y
-		D3DXVECTOR3(1.0f,0,0), //-y
-		D3DXVECTOR3(0,1.0f,0), //+z	
-		D3DXVECTOR3(0,1.0f,0), //-z	
-	};
-	
+
 	D3DXVECTOR3 up[6] = 
 	{
-		D3DXVECTOR3(0,1.0f,0), //+x	
-		D3DXVECTOR3(0,1.0f,0), //-x
-		D3DXVECTOR3(0,0,1.0f), //+y
-		D3DXVECTOR3(0,0,-1.0f), //-y
-		D3DXVECTOR3(0,1.0f,0), //+z	
-		D3DXVECTOR3(0,1.0f,0), //-z
+		D3DXVECTOR3(0.0f, 1.0f, 0.0f),
+		D3DXVECTOR3(0.0f, 1.0f, 0.0f),
+		D3DXVECTOR3(0.0f, 0.0f, -1.0f),
+		D3DXVECTOR3(0.0f, 0.0f, 1.0f),
+		D3DXVECTOR3(0.0f, 1.0f, 0.0f),
+		D3DXVECTOR3(0.0f, 1.0f, 0.0f),
+	};
+
+	D3DXVECTOR3 right[6] = 
+	{
+		D3DXVECTOR3(0.0f, 0.0f, -1.0f),
+		D3DXVECTOR3(0.0f, 0.0f, 1.0f),
+		D3DXVECTOR3(1.0f, 0.0f, 0.0f),
+		D3DXVECTOR3(1.0f, 0.0f, 0.0f),
+		D3DXVECTOR3(1.0f, 0.0f, 0.0f),
+		D3DXVECTOR3(-1.0f, 0.0f, 0.0f),
 	};
 
 
@@ -174,6 +174,7 @@ void Cubemap::updateCameraPos(D3DXVECTOR3 pos)
 	for(int i = 0; i < 6; i++)
 	{
 		cams[i]->setPos(pos);
+		cams[i]->updateViewMatrix();
 	}
 }
 
