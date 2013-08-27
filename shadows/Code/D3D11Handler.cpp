@@ -49,6 +49,10 @@ D3D11Handler::~D3D11Handler()
 	}
 	SAFE_DELETE(this->SRVs);
 
+	if(this->shader)
+	{
+		delete this->shader;
+	}
 	
 	SAFE_RELEASE(this->DSV);
 	SAFE_RELEASE(this->device);
@@ -272,6 +276,18 @@ HRESULT D3D11Handler::InitDirect3D()
 
 	this->shaders.push_back(new Shader());
 	if(FAILED(this->shaders[2]->Init(this->device, this->deviceContext, "../Shaders/FullScreenQuad.fx", inputDesc, 3)))
+	{
+		return E_FAIL;
+	}
+
+		D3D11_INPUT_ELEMENT_DESC inputDesc2[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXTCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	shader = new Shader();
+	if(FAILED(this->shader->Init(this->device, this->deviceContext, "../Shaders/BasicShadows.fx", inputDesc2, 3)))
 	{
 		return E_FAIL;
 	}

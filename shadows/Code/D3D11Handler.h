@@ -20,6 +20,7 @@ class D3D11Handler : public WinHandler
 		int nrOfTargets;
 		int nrOfShaders;
 		std::vector<Shader*>     shaders;
+		Shader*					shader;
 
 	protected:
 		ID3D11ShaderResourceView **SRVs;
