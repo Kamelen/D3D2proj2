@@ -1,6 +1,5 @@
 #include "Program.h"
 
-
 program::program(void)
 {
 	flyMode = true;
@@ -166,6 +165,7 @@ void program::buildShadowMap(D3DXMATRIX &lightViewProj)
 
 void program::render(float deltaTime)
 {
+	Shader* shader;
 	D3DXMATRIX world, view, proj, wvp, lightWVP, translate, rotate, lightViewProj;
 
 	cam->setLens(0.45f*PI,  1024.0f / 768.0f,1,1000);
@@ -176,29 +176,98 @@ void program::render(float deltaTime)
 
 	//buildShadowMap(lightViewProj);
 
-	static float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	D3D11Handler::deviceContext->ClearRenderTargetView( renderTargetView, ClearColor );
-	
-    //clear depth info
-	this->deviceContext->ClearDepthStencilView(this->depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
+	D3D11Handler::clearAndBindTarget();
 
 	//set topology
 	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-
-	//calculate WVP matrix
-
 	
 	D3DXMatrixIdentity(&world);
 	static float rotY = 0.0f;
 
-	
-	wvp = world * view * proj;
-	this->map->getVertexBuffer()->Apply();
-	this->map->getIndexBuffer()->Apply();
-	this->shader->SetMatrix("WVP" , wvp);
-	this->shader->SetMatrix("W", world);
+	//Geometry Pass
+	//--------------------------------------------------------
+		shader = this->setPass(0);
+		this->map->getVertexBuffer()->Apply();
+		this->map->getIndexBuffer()->Apply();
+		shader->SetMatrix("world" , world);
+		shader->SetMatrix("view", view);
+		shader->SetMatrix("proj", proj);
+		shader->SetResource("textures" , map->getTerTexture(0));
+		shader->Apply(0);
+		this->deviceContext->DrawIndexed(256*256*6,0,0);
+	//---------------------------------------------------------
 
+	//Light  Pass
+	//----------------------------------
+		//shader = this->setPass(1);
+		
+
+	//---------------------------------
+
+
+	//fullscreen quad
+	//-------------------------------------------------------------------------------
+		mesh = new Vertex[6];
+		mesh[0] = Vertex(D3DXVECTOR3(1,-1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,0));
+		mesh[1] = Vertex(D3DXVECTOR3(-1,-1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,0));
+		mesh[2] = Vertex(D3DXVECTOR3(1,1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,1));
+	
+		mesh[3] = Vertex(D3DXVECTOR3(1,1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,1));
+		mesh[4] = Vertex(D3DXVECTOR3(-1,-1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,0));
+		mesh[5] = Vertex(D3DXVECTOR3(-1,1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,1));
+	
+		BUFFER_INIT_DESC vertexBufferDesc;
+ 		vertexBufferDesc.ElementSize = sizeof(Vertex);
+		vertexBufferDesc.InitData = &mesh[0];
+		vertexBufferDesc.NumElements = 6;
+		vertexBufferDesc.Type = VERTEX_BUFFER;
+		vertexBufferDesc.Usage = BUFFER_DEFAULT;
+
+		Buffer *vB;
+		vB = new Buffer();
+		if(FAILED(vB->Init(device, deviceContext, vertexBufferDesc)))
+		{
+			return;
+		}
+
+		shader = this->setPass(2);
+		shader->SetResource("diffuseAlbedoMap", this->SRVs[0]); 
+		shader->SetResource("normalMap", this->SRVs[1]);
+		vB->Apply();
+		shader->Apply(0);
+		this->deviceContext->Draw(6, 0);
+	//----------------------------------------------------------------------
+
+
+		//DepthStencilState
+	//------------------------
+		 D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+		 ZeroMemory(&depthStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+		 depthStencilDesc.DepthEnable = FALSE;
+		 depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		 depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+		 depthStencilDesc.StencilEnable = FALSE;
+		 depthStencilDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+		 depthStencilDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+		 depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		 depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		 depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+		 depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+		 depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		 depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		 depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		 depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+
+		 ID3D11DepthStencilState* depthStencilState;
+		 this->device->CreateDepthStencilState(&depthStencilDesc, &depthStencilState);
+
+	//-------------------------
+	this->deviceContext->OMSetRenderTargets(1, &this->backBufferRTV, this->DSV);
+	this->deviceContext->OMSetDepthStencilState(depthStencilState, NULL);
+	this->pSys->render(deviceContext,wvp);
+	this->deviceContext->OMSetDepthStencilState(NULL, NULL);
+	//Shadowmap grejer
+	/*
 	lightWVP = world * lightViewProj;
 
 	this->shader->SetMatrix("LightWVP", lightWVP);
@@ -207,10 +276,7 @@ void program::render(float deltaTime)
 	this->shader->SetFloat("texTrans", texTrans);
 	this->shader->SetResource("diffuseMap", map->getTerTexture(0));
 	this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
-
-	this->shader->Apply(0);
-	this->deviceContext->DrawIndexed(256*256*6,0,0);
-	this->pSys->render(deviceContext,wvp);
+	
 
 	D3DXMatrixScaling(&world,0.1,0.1,0.1);
 	D3DXMatrixTranslation(&translate,1,150,0);
@@ -242,7 +308,7 @@ void program::render(float deltaTime)
 	this->shader->Apply(0);
 	billboardTest->getVertexBuffer()->Apply();
 	this->deviceContext->Draw(billboardTest->getNrOfVerts(),0);
-
+	*/
 	if(FAILED(D3D11Handler::swapChain->Present( 0, 0 )))
 	{
 		return;

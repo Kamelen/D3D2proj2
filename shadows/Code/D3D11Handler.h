@@ -7,24 +7,35 @@
 
 class D3D11Handler : public WinHandler
 {
-	private:
+	protected:
+		D3D11_VIEWPORT           viewPort;
+		ID3D11RenderTargetView  *backBufferRTV;
+		ID3D11Texture2D         *backBufferDS; // ???
+		ID3D11DepthStencilView  *backBufferDSV; //????
 
+		ID3D11Texture2D          **RTs;
+		ID3D11RenderTargetView   **RTVs;
+		ID3D11DepthStencilView   *DSV;
+
+		int nrOfTargets;
+		int nrOfShaders;
+		std::vector<Shader*>     shaders;
 
 	protected:
+		ID3D11ShaderResourceView **SRVs;
 		IDXGISwapChain*         swapChain;	
-		ID3D11RenderTargetView* renderTargetView;	
-		ID3D11Texture2D*        depthStencil; 
-		ID3D11DepthStencilView* depthStencilView;
 		ID3D11Device*			device;
 		ID3D11DeviceContext*	deviceContext;
-		Shader*					shader;
-		D3D11_VIEWPORT          viewPort;
 		char* FeatureLevelToString(D3D_FEATURE_LEVEL featureLevel);
 
 	public:
 		D3D11Handler();
 		~D3D11Handler();
 		HRESULT InitDirect3D();
+		HRESULT initResources(int screenWidth, int screenHeight);
+		Shader* setPass(int nr);
+		void clearAndBindTarget();
+		ID3D11ShaderResourceView* debugGetSRV(int id);
 		void resetRT();
 };
 
