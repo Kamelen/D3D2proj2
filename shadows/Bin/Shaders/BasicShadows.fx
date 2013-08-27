@@ -39,9 +39,15 @@ cbuffer EveryFrame
 	float texTrans;
 	float4 cameraPos;
 	bool useCubeMap;
+	bool useBlending;
 };
 
-Texture2D diffuseMap;
+Texture2D diffuseMap1;
+Texture2D diffuseMap2;
+Texture2D diffuseMap3;
+
+Texture2D blendMap;
+
 Texture2D shadowMap;
 TextureCube cubeMap;
 
@@ -77,6 +83,15 @@ PS_INPUT VS( VS_INPUT input )
 //-----------------------------------------------------------------------------------------
 float4 PSScene(PS_INPUT input) : SV_Target
 {	
+
+	float4 texColor = (0,0,0,0);
+	float4 finalColor = (0,0,0,0);
+	float4 blend = (0,0,0,0);
+	float4 w1 = (0,0,0,0);
+	float4 w2 = (0,0,0,0);
+	float4 w3 = (0,0,0,0);
+
+
 	if(texTrans != 5)
 	{
 		input.tex.x += texTrans;	
@@ -85,8 +100,25 @@ float4 PSScene(PS_INPUT input) : SV_Target
 	float3 incident = -toEye;
 	float3 reflectionVector = reflect(incident, normalize(input.normal));
 	float4 reflectionsColor = cubeMap.Sample(cubeSampler, normalize(reflectionVector));
+	
 
-	float4 texColor = diffuseMap.Sample(textureSampler, input.tex);
+	//get the blending of the textures if it is to be used
+	if(useBlending == true)
+	{
+		
+		blend = blendMap.Sample(textureSampler,input.tex);
+		w1 = blend.x/(blend.x + blend.y + blend.z);
+		w2 = blend.y/(blend.x + blend.y + blend.z);
+		w3 = blend.z/(blend.x + blend.y + blend.z);
+
+		texColor = diffuseMap1.Sample(textureSampler,input.tex)*w1 + diffuseMap2.Sample(textureSampler,input.tex)*w2 + diffuseMap3.Sample(textureSampler,input.tex)*w3;
+		return texColor;
+	}
+	else
+	{
+		texColor = diffuseMap1.Sample(textureSampler, input.tex);
+	}
+	
 	
 	//Project the texture coords and scale/offset to [0, 1].
 	input.posLightH.xy /= input.posLightH.w;

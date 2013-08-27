@@ -29,7 +29,7 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	{
 		return false;
 	}
-	string textureNames[] = {"Fire.png", "koala.png","texture03.dds"};
+	string textureNames[] = {"texture01.dds", "texture02.dds","texture03.dds"};
 	map = new Terrain("testheight.Raw",256,256,0.5,0,this->device,this->deviceContext,textureNames,"terrainblend.png");
 	
 	D3DXVECTOR3 position = map->getTerrainPos(254,254);
@@ -70,9 +70,9 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 
 	D3DXMATRIX world, translate;
 	D3DXMatrixScaling(&world,4,4,4);
-	D3DXMatrixTranslation(&translate,65,94,16);
+	D3DXMatrixTranslation(&translate,-14,152,68);
 
-	this->objects.push_back(D3DObject(objReader->getOBJfromFile("coolaModellerFixed/cube.obj", this->nrOfVerts), this->nrOfVerts, (world * translate)));
+	this->objects.push_back(D3DObject(objReader->getOBJfromFile("coolaModellerFixed/sphere.obj", this->nrOfVerts), this->nrOfVerts, (world * translate)));
 	
 	for(int i = 0; i < this->objects.size(); i++)
 	{
@@ -108,7 +108,7 @@ int program::update(float deltaTime)
 
 	this->pSys->update(this->deviceContext,this->device);
 
-	this->texTrans += 0.01f;
+	//this->texTrans += 0.01f;
 	if(texTrans > 1.0f)
 	{
 		this->texTrans = 0.0f;
@@ -126,6 +126,7 @@ void program::buildCubeMap(D3DXMATRIX &lightViewProj)
 	Camera* currCam;
 	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	deviceContext->RSSetViewports(1, &cubeMap->getViewport());
+	this->shader->SetBool("useblendMap" ,false);
 	for(int i = 0; i < 6; ++i)
 	{
 		//clear
@@ -157,9 +158,15 @@ void program::buildCubeMap(D3DXMATRIX &lightViewProj)
 
 		this->shader->SetFloat("SMAP_SIZE", 4024);
 		this->shader->SetFloat("texTrans", texTrans);
-		this->shader->SetBool("useCubeMap", false);
+		this->shader->SetBool("useCubeMap", true);
+		this->shader->SetBool("useBlending", true);
+
 		this->shader->SetFloat4("cameraPos",D3DXVECTOR4(cam->getPosition(),0));
-		this->shader->SetResource("diffuseMap", map->getTerTexture(1));
+
+		this->shader->SetResource("blendMap", map->getTexture());
+		this->shader->SetResource("diffuseMap1", map->getTerTexture(0));
+		this->shader->SetResource("diffuseMap2", map->getTerTexture(1));
+		this->shader->SetResource("diffuseMap3", map->getTerTexture(2));
 		this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
 		//this->shader->SetResource("cubeMap", cubeMap->getCubemap());
 
@@ -184,13 +191,14 @@ void program::buildCubeMap(D3DXMATRIX &lightViewProj)
 		this->shader->SetFloat("SMAP_SIZE", 4024);
 		this->shader->SetFloat("texTrans", texTrans);
 		this->shader->SetBool("useCubeMap", false);
+		this->shader->SetBool("useBlending", false);
 		this->shader->SetFloat4("cameraPos",D3DXVECTOR4(cam->getPosition(),0));
-		this->shader->SetResource("diffuseMap", map->getTerTexture(1));
+		this->shader->SetResource("diffuseMap1", map->getTerTexture(1));
 		this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
 		//this->shader->SetResource("cubeMap", cubeMap->getCubemap());
 		this->objects.at(0).getVertexBuffer()->Apply();
 		this->shader->Apply(0);
-		this->deviceContext->Draw(this->objects.at(0).getNrOfVertices(),0);
+		//this->deviceContext->Draw(this->objects.at(0).getNrOfVertices(),0);
 	
 		wvp = billboardTest->getUpdatedWorldMat(this->cam->getPosition()) * view * proj;
 
@@ -297,7 +305,7 @@ void program::render(float deltaTime)
 	this->shader->SetFloat("texTrans", texTrans);
 	this->shader->SetBool("useCubeMap", false);
 	this->shader->SetFloat4("cameraPos",D3DXVECTOR4(cam->getPosition(),0));
-	this->shader->SetResource("diffuseMap", map->getTerTexture(1));
+	this->shader->SetResource("diffuseMap1", map->getTerTexture(1));
 	this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
 	this->shader->SetResource("cubeMap", cubeMap->getCubemap());
 
@@ -323,16 +331,16 @@ void program::render(float deltaTime)
 	this->shader->SetFloat("texTrans", texTrans);
 	this->shader->SetBool("useCubeMap", true);
 	this->shader->SetFloat4("cameraPos",D3DXVECTOR4(cam->getPosition(),0));
-	this->shader->SetResource("diffuseMap", map->getTerTexture(1));
+	this->shader->SetResource("diffuseMap1", map->getTerTexture(1));
 	this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
 	this->shader->SetResource("cubeMap", cubeMap->getCubemap());
 	this->objects.at(0).getVertexBuffer()->Apply();
 	this->shader->Apply(0);
 	this->deviceContext->Draw(this->objects.at(0).getNrOfVertices(),0);
-	
-	wvp = billboardTest->getUpdatedWorldMat(this->cam->getPosition()) * view * proj;
+	world = billboardTest->getUpdatedWorldMat(this->cam->getPosition());
+	wvp = world * view * proj;
 
-	this->shader->SetMatrix("W",billboardTest->getUpdatedWorldMat(this->cam->getPosition()));
+	this->shader->SetMatrix("W",world);
 	this->shader->SetMatrix("WVP" , wvp);
 	this->shader->SetFloat("texTrans", texTrans);
 	this->shader->Apply(0);
