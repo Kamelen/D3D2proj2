@@ -52,28 +52,24 @@ struct Vertex
 
 };
 
-struct PointLight
+struct POINTLIGHTINSTANCE
 {
-	D3DXVECTOR4 lightPos;
-	D3DXVECTOR4 diffuseColor;
-	D3DXVECTOR4 ambientColor;
-	D3DXVECTOR4 specularColor;
-	D3DXVECTOR4 cameraPos;
-	float rad;
+	D3DXVECTOR3 lightPos;
+	D3DXVECTOR3 lightColor;
+	float lightRadius;
 
-	PointLight()
+	POINTLIGHTINSTANCE()
 	{
-
+		this->lightPos = D3DXVECTOR3(0,0,0);
+		this->lightColor = D3DXVECTOR3(1,1,1);
+		this->lightRadius = 1;
 	}
 
-	PointLight(D3DXVECTOR4 lightPos, D3DXVECTOR4 diffuseColor, D3DXVECTOR4 ambientColor, D3DXVECTOR4 specularColor, D3DXVECTOR4 cameraPos, float rad)
+	POINTLIGHTINSTANCE(D3DXVECTOR3 lightPos, D3DXVECTOR3 lightColor, float lightRadius)
 	{
 		this->lightPos = lightPos;
-		this->diffuseColor = diffuseColor;
-		this->ambientColor = ambientColor;
-		this->specularColor = specularColor;
-		this->cameraPos = cameraPos;
-		this->rad = rad;
+		this->lightColor = lightColor;
+		this->lightRadius = lightRadius;
 	}
 
 

@@ -339,9 +339,48 @@ void program::render(float deltaTime)
 
 	//Light  Pass
 	//----------------------------------
-		//shader = this->setPass(1);
-		
 
+		//ljusbuffer (vertex och instance)
+		//-----------------------------------------------------------------
+			POINTLIGHTINSTANCE *instance = new POINTLIGHTINSTANCE[2];
+			instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(0,0,0) ,D3DXVECTOR3(1,0,0) , 100f);
+			instance[1] = POINTLIGHTINSTANCE(D3DXVECTOR3(256,0,256) ,D3DXVECTOR3(0,1,0) , 100f);
+		
+			BUFFER_INIT_DESC instanceBufferDesc;
+			instanceBufferDesc.ElementSize = sizeof(POINTLIGHTINSTANCE);
+			instanceBufferDesc.InitData = &instance[0];
+			instanceBufferDesc.NumElements = 2;
+			instanceBufferDesc.Type = VERTEX_BUFFER;
+			instanceBufferDesc.Usage = BUFFER_DEFAULT;
+ 		
+			Buffer* instanceBuffer;
+			instanceBuffer = new Buffer();
+			instanceBuffer->Init(this->device, this->deviceContext, instanceBufferDesc);
+
+			Buffer* vertexBuffer = this->objects[0].getVertexBuffer();
+
+			UINT strides[2] = {sizeof(Vertex) , sizeof(POINTLIGHTINSTANCE)};
+			UINT offset[2] = {0,0};
+			ID3D11Buffer* buffers[2] = {vertexBuffer , instanceBuffer};
+
+			this->deviceContext->IASetVertexBuffers(0,2,buffers, strides, offset);
+		//------------------------------------------------------------------------------
+
+		D3DXMatrix invertViewProj; 
+		D3DXMatrixInverse(D3DXMatrixMultiply(invertViewProj, view , proj);
+
+		shader = this->setPass(1);
+
+		shader->SetFloat4("cameraPos" , D3DXVECTOR4(cam->getPosition, 0));
+		shader->SetResource("diffuseAlbedoMap" , this->SRVs[0]);
+		shader->SetResource("normalMap" , this->SRVs[1]);
+		shader->SetResource("depthMap" , this->SRVs[3];
+		shader->SetMatrix("view", view);
+		shader->SetMatrix("proj", proj);
+		shader->SetMatrix("inverViewProjection" , invertViewProj);
+
+		shader->Apply(0);
+		this->deviceContext->DrawInstanced(this->objects[0].getNrOfVertices(), 2, 0 , 0);
 	//---------------------------------
 
 
@@ -374,6 +413,7 @@ void program::render(float deltaTime)
 		shader = this->setPass(2);
 		shader->SetResource("diffuseAlbedoMap", this->SRVs[0]); 
 		shader->SetResource("normalMap", this->SRVs[1]);
+		shader->SetResource("lightMap", this->SRVs[2]);
 		vB->Apply();
 		shader->Apply(0);
 		this->deviceContext->Draw(6, 0);
