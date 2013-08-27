@@ -12,6 +12,7 @@
 #include "ShadowMap.h"
 #include "billboard.h"
 #include "Cubemap.h"
+#include <vld.h>
 
 using namespace std;
 

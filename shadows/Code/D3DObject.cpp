@@ -13,6 +13,8 @@ D3DObject::D3DObject(Vertex* mesh, int nrOfVertices, D3DXMATRIX worldMat)
 	this->texture = NULL;
 	this->vB = NULL;
 	this->iB = NULL;
+	
+	SAFE_DELETE(mesh);
 
 	this->worldMat = worldMat;
 }

@@ -26,6 +26,7 @@ Billboard::Billboard(Vertex* mesh, int nrOfVerts, D3DXVECTOR3 pos, ID3D11Device 
 	{																			
 		//error															
 	}
+	SAFE_DELETE(mesh);
 
 
 }

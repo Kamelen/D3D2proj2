@@ -180,5 +180,15 @@ void Cubemap::updateCameraPos(D3DXVECTOR3 pos)
 
 Cubemap::~Cubemap(void)
 {
-
+	SAFE_RELEASE(this->DCMDSV);
+	SAFE_RELEASE(this->DCMSRV);
+	for(int i = 0; i < 6; i++)
+	{
+		SAFE_RELEASE(this->DCMRTV[i]);	
+	}
+	
+	for(int i = 0; i < 6; i++)
+	{
+		SAFE_DELETE(this->cams[i]);	
+	}
 }

@@ -119,38 +119,14 @@ float4 PSScene(PS_INPUT input) : SV_Target
 		texColor = diffuseMap1.Sample(textureSampler, input.tex);
 	}
 	
-	
-	//Project the texture coords and scale/offset to [0, 1].
-	input.posLightH.xy /= input.posLightH.w;
-	
-	//Compute shadow map tex coord
-	float2 smTex = float2(0.5f*input.posLightH.x, -0.5f*input.posLightH.y) + 0.5f;
-	
-	//Compute pixel depth for shadowing.
-	float depth = input.posLightH.z / input.posLightH.w;
-	
-	// 2x2 percentage closest filter.
-	float dx = 1.0f / SMAP_SIZE;
-	float s0 = (shadowMap.Sample(shadowMapSampler, smTex).r + SHADOW_EPSILON < depth) ? 0.0f : 1.0f;
-	float s1 = (shadowMap.Sample(shadowMapSampler, smTex + float2(dx, 0.0f)).r + SHADOW_EPSILON < depth) ? 0.0f : 1.0f;
-	float s2 = (shadowMap.Sample(shadowMapSampler, smTex + float2(0.0f, dx)).r + SHADOW_EPSILON < depth) ? 0.0f : 1.0f;
-	float s3 = (shadowMap.Sample(shadowMapSampler, smTex + float2(dx, dx)).r   + SHADOW_EPSILON < depth) ? 0.0f : 1.0f;
-	
-	// Transform to texel space
-	float2 texelPos = smTex * SMAP_SIZE;
-	
-	// Determine the lerp amounts.           
-	float2 lerps = frac( texelPos );
-	float shadowCoeff = lerp( lerp( s0, s1, lerps.x ),lerp( s2, s3, lerps.x ),lerps.y );
-	float3 litColor = texColor.rgb * shadowCoeff;
-
 	if(useCubeMap == true)
 	{
 		return reflectionsColor;	
 	}
 
-	return float4(litColor,1);
+	return float4(texColor);
 }
+
 
 technique11 BasicShadowTech
 {

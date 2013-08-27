@@ -10,7 +10,7 @@ Shader::Shader()
 Shader::~Shader()
 {
 	SAFE_RELEASE(m_pInputLayout);
-	//SAFE_RELEASE(m_pEffect);
+	SAFE_RELEASE(m_pEffect);
 
 	if(m_pEffect)
 	{

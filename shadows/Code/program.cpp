@@ -11,10 +11,13 @@ program::~program(void)
 {
 	SAFE_DELETE(map);
 	SAFE_DELETE(cam);
+	SAFE_DELETE(lightCam);
 	SAFE_DELETE(input);
 	SAFE_DELETE(pSys);
 	SAFE_DELETE(billboardTest);
 	SAFE_DELETE(cubeMap);
+	SAFE_DELETE(shadowMap);
+	SAFE_DELETE(objReader);
 } 
 
 bool program::initiate(HINSTANCE hInstance, int nCmdShow)
@@ -29,7 +32,7 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 		return false;
 	}
 	string textureNames[] = {"texture01.dds", "texture02.dds","texture03.dds"};
-	map = new Terrain("testheight.Raw",256,256,0.5,0,this->device,this->deviceContext,textureNames,"terrainblend.png");
+	map = new Terrain("cloudy.Raw",256,256,0.5,0,this->device,this->deviceContext,textureNames,"terrainblend.png");
 	
 	D3DXVECTOR3 position = map->getTerrainPos(254,254);
 	D3DXVECTOR3 look = D3DXVECTOR3(0,0,1);
@@ -38,7 +41,7 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 
 	cam = new Camera(position, look, right, up);
 
-	position = D3DXVECTOR3(1, 180, 0);
+	position = D3DXVECTOR3(1, 200, 0);
 	look = D3DXVECTOR3(0,-1,0);
 	right = D3DXVECTOR3(0,0,1);
 	up = D3DXVECTOR3(1,0,0);
@@ -52,7 +55,7 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	pSys->addRain(this->deviceContext,this->device,"Rain.fx",D3DXVECTOR3(0,150,0),D3DXVECTOR3(0,-1,0),100,100,1,5000,100,1);
 	//-14 152 68
 	shadowMap = new ShadowMap(this->device, this->deviceContext,4024, 4024);
-	cubeMap = new Cubemap(1024,D3DXVECTOR3(-14,152,68),this->device);
+	cubeMap = new Cubemap(1024,D3DXVECTOR3(-1,100,0),this->device);
 	// -------------------------OBJREADER TEST ---------------------------------
 	objReader = new OBJReader();												//
 	mesh = new Vertex[6];
@@ -69,7 +72,7 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 
 	D3DXMATRIX world, translate;
 	D3DXMatrixScaling(&world,4,4,4);
-	D3DXMatrixTranslation(&translate,-14,152,68);
+	D3DXMatrixTranslation(&translate,-1,100,0);
 
 	this->objects.push_back(D3DObject(objReader->getOBJfromFile("coolaModellerFixed/sphere.obj", this->nrOfVerts), this->nrOfVerts, (world * translate)));
 	
@@ -102,12 +105,11 @@ int program::update(float deltaTime)
 	}
 	
 	this->cam->setPos(D3DXVECTOR3((float)pos.x,(float)pos.y,(float)pos.z));
-	//this->cubeMap->updateCameraPos(pos);
 	checkKeyBoard(deltaTime);
 
 	this->pSys->update(this->deviceContext,this->device);
 
-	//this->texTrans += 0.01f;
+	this->texTrans += 0.01f;
 	if(texTrans > 1.0f)
 	{
 		this->texTrans = 0.0f;
@@ -115,6 +117,9 @@ int program::update(float deltaTime)
 	
 	return 0;
 }
+
+
+
 
 void program::buildCubeMap(D3DXMATRIX &lightViewProj)
 {
@@ -272,7 +277,7 @@ void program::render(float deltaTime)
 	proj = cam->getProj();
 
 	buildShadowMap(lightViewProj);
-	buildCubeMap(lightViewProj);
+	buildCubeMap(world);
 
 	D3D11Handler::clearAndBindTarget();
 
@@ -284,6 +289,7 @@ void program::render(float deltaTime)
 
 	//Geometry Pass
 	//--------------------------------------------------------
+		//rita ut terräng med blendmap och shadowmap på
 		shader = this->setPass(0);
 		this->map->getVertexBuffer()->Apply();
 		this->map->getIndexBuffer()->Apply();
@@ -292,23 +298,43 @@ void program::render(float deltaTime)
 		shader->SetMatrix("proj", proj);
 		shader->SetBool("useCubeMap", false);
 		shader->SetBool("useBlendMap", true);
-		shader->SetBool("useShadowMap", false);
+		shader->SetBool("useShadowMap", true);
+
+		shader->SetMatrix("lightWVP",lightViewProj * world);
+		shader->SetFloat("SMAP_SIZE", 4024);
+		shader->SetFloat("texTrans", 0);
+
 		shader->SetFloat4("cameraPos", D3DXVECTOR4(cam->getPosition(),1));
 		shader->SetResource("texture1" , map->getTerTexture(0));
 		shader->SetResource("texture2" , map->getTerTexture(1));
 		shader->SetResource("texture3" , map->getTerTexture(2));
 		shader->SetResource("blendMap" , map->getTexture());
+		shader->SetResource("shadowMap" , shadowMap->DepthMapSRV());
 		shader->Apply(0);
 		this->deviceContext->DrawIndexed(256*256*6,0,0);
 
+
+		//rita ut en sfär med cubemap på
 		this->objects[0].getVertexBuffer()->Apply();
 		shader->SetBool("useBlendMap", false);
 		shader->SetBool("useCubeMap", true);
+		shader->SetBool("useShadowMap",false);
+		shader->SetFloat("texTrans", 0);
 		shader->SetResource("cubeMap",this->cubeMap->getCubemap());
 		shader->SetMatrix("world" , this->objects[0].getWorldMatrix());
 		shader->Apply(0);
 		this->deviceContext->Draw(this->objects[0].getNrOfVertices(),0);
 
+		//rita ut billboard
+		this->billboardTest->getVertexBuffer()->Apply();
+		shader->SetBool("useBlendMap", false);
+		shader->SetBool("useCubeMap", true);
+		shader->SetBool("useShadowMap",false);
+		shader->SetFloat("texTrans", 0);
+		shader->SetResource("cubeMap",this->cubeMap->getCubemap());
+		shader->SetMatrix("world" , billboardTest->getUpdatedWorldMat(this->cam->getPosition()));
+		shader->Apply(0);
+		this->deviceContext->Draw(6,0);
 	//---------------------------------------------------------
 
 	//Light  Pass
@@ -343,6 +369,7 @@ void program::render(float deltaTime)
 		{
 			return;
 		}
+		SAFE_DELETE(mesh);
 
 		shader = this->setPass(2);
 		shader->SetResource("diffuseAlbedoMap", this->SRVs[0]); 
@@ -435,6 +462,8 @@ void program::render(float deltaTime)
 	billboardTest->getVertexBuffer()->Apply();
 	this->deviceContext->Draw(billboardTest->getNrOfVerts(),0);
 	*/
+	SAFE_DELETE(vB);
+
 	if(FAILED(D3D11Handler::swapChain->Present( 0, 0 )))
 	{
 		return;
