@@ -11,6 +11,7 @@
 #include "OBJReader.h"
 #include "ShadowMap.h"
 #include "billboard.h"
+#include "Cubemap.h"
 
 using namespace std;
 
@@ -41,6 +42,8 @@ private:
 	Camera* lightCam;
 	Input* input;
 
+	Cubemap* cubeMap;
+
 	int nrOfVerts;
 	int nrOfObjects;
 	float texTrans;
@@ -50,7 +53,8 @@ private:
 	void mouseOnMove(WPARAM btnState, int x, int y);
 
 	void buildShadowMap(D3DXMATRIX &lightViewProj);
-	
+	void buildCubeMap(D3DXMATRIX &lightViewProj);
+
 	bool flyMode;
 };
 
