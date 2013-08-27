@@ -101,8 +101,6 @@ Cubemap::Cubemap(int cubeSize, D3DXVECTOR3 position, ID3D11Device* device)
 
 	//create cameras
 
-	float x,y,z;
-
 	D3DXVECTOR3 centerPos = position;
 	D3DXVECTOR3 look[6] = 
 	{

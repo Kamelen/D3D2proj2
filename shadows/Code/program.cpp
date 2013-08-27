@@ -101,7 +101,7 @@ int program::update(float deltaTime)
 
 	if(!flyMode)
 	{
-		pos.y = this->map->getY(pos.x,pos.z); //följer terrängs Y coord
+		pos.y = this->map->getY((int)pos.x,(int)pos.z); //följer terrängs Y coord
 	}
 	
 	this->cam->setPos(D3DXVECTOR3((float)pos.x,(float)pos.y,(float)pos.z));
@@ -178,8 +178,8 @@ void program::buildCubeMap(D3DXMATRIX &lightViewProj)
 		this->deviceContext->DrawIndexed(256*256*6,0,0);
 		this->pSys->render(deviceContext,wvp);
 
-		D3DXMatrixScaling(&world,0.1,0.1,0.1);
-		D3DXMatrixTranslation(&translate,1,150,0);
+		D3DXMatrixScaling(&world,0.1f,0.1f,0.1f);
+		D3DXMatrixTranslation(&translate,1.0f,150.0f,0.0f);
 	
 		wvp = (this->objects.at(0).getWorldMatrix()) * view * proj;
 	
