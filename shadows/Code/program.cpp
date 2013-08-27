@@ -271,7 +271,7 @@ void program::render(float deltaTime)
 	view = cam->getView();
 	proj = cam->getProj();
 
-	//buildShadowMap(lightViewProj);
+	buildShadowMap(lightViewProj);
 	buildCubeMap(lightViewProj);
 
 	D3D11Handler::clearAndBindTarget();
@@ -290,9 +290,25 @@ void program::render(float deltaTime)
 		shader->SetMatrix("world" , world);
 		shader->SetMatrix("view", view);
 		shader->SetMatrix("proj", proj);
-		shader->SetResource("textures" , map->getTerTexture(0));
+		shader->SetBool("useCubeMap", false);
+		shader->SetBool("useBlendMap", true);
+		shader->SetBool("useShadowMap", false);
+		shader->SetFloat4("cameraPos", D3DXVECTOR4(cam->getPosition(),1));
+		shader->SetResource("texture1" , map->getTerTexture(0));
+		shader->SetResource("texture2" , map->getTerTexture(1));
+		shader->SetResource("texture3" , map->getTerTexture(2));
+		shader->SetResource("blendMap" , map->getTexture());
 		shader->Apply(0);
 		this->deviceContext->DrawIndexed(256*256*6,0,0);
+
+		this->objects[0].getVertexBuffer()->Apply();
+		shader->SetBool("useBlendMap", false);
+		shader->SetBool("useCubeMap", true);
+		shader->SetResource("cubeMap",this->cubeMap->getCubemap());
+		shader->SetMatrix("world" , this->objects[0].getWorldMatrix());
+		shader->Apply(0);
+		this->deviceContext->Draw(this->objects[0].getNrOfVertices(),0);
+
 	//---------------------------------------------------------
 
 	//Light  Pass
