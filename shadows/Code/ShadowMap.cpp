@@ -70,6 +70,9 @@ ShadowMap::ShadowMap(ID3D11Device* device, ID3D11DeviceContext* immediateContext
 
 ShadowMap::~ShadowMap(void)
 {
+	SAFE_RELEASE(this->depthMapDSV);
+	SAFE_RELEASE(this->depthMapSRV);
+	SAFE_DELETE(this->shadowShader);
 }
 
 

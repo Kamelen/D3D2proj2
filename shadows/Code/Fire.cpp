@@ -93,14 +93,14 @@ void Fire::render(ID3D11DeviceContext *deviceContext, D3DXMATRIX wvp)
 
 	shader->SetResource("Texture" , this->texture);
 	this->shader->Apply(0);
-	deviceContext->DrawIndexed(this->indices.size(),0,0);
+	deviceContext->DrawIndexed((UINT)this->indices.size(),0,0);
 }
 
 void Fire::emitt()
 {
 	BaseParticle tempParticle = *this->emitter;
 
-	static float srand(time(NULL));
+	static float srand((float)time(NULL));
 	float posX = (float)rand()/(float)(RAND_MAX/4.0f);
 	float posY = (float)rand()/(float)(RAND_MAX/4.0f);
 	float posZ = (float)rand()/(float)(RAND_MAX/4.0f);
@@ -115,7 +115,7 @@ void Fire::emitt()
 	origPos.y += posY;
 	origPos.z += posZ;
 
-	timeToLive += randLife;
+	timeToLive += (int)randLife;
 
 	tempParticle.setDirection(D3DXVECTOR3(0,1,0));
 	tempParticle.setPosition(origPos);

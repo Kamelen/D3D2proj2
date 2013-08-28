@@ -53,7 +53,10 @@ D3D11Handler::~D3D11Handler()
 	{
 		delete this->shader;
 	}
-	
+	for(int i = 0; i < this->nrOfShaders; i++)
+	{
+		SAFE_DELETE(shaders[i]);
+	}
 	SAFE_RELEASE(this->DSV);
 	SAFE_RELEASE(this->device);
 	SAFE_RELEASE(this->deviceContext);

@@ -41,6 +41,7 @@ cbuffer EveryFrame
 
 	static const float SHADOW_EPSILON = 0.000001f;
 	float SMAP_SIZE;
+	float texTrans;
 
 	float4 cameraPos;
 	bool useCubeMap;
@@ -78,6 +79,7 @@ struct PSOut
 
 float computeShadows(float4 posLightH)
 {
+
 	//Project the texture coords and scale/offset to [0, 1].
 	posLightH.xy /= posLightH.w;
 	
@@ -130,9 +132,12 @@ PSOut PSScene(PSIn input)
 	float4 w2 = (0,0,0,0);
 	float4 w3 = (0,0,0,0);
 
+	input.uv.x += texTrans;
 
 	float4 normalW = float4( 0.5f * (normalize(input.normalW).rgb + 1.0f), specularPower);
 	output.normal = normalW;
+
+	diffuseAlbedo = texture1.Sample( anisoSampler , input.uv);
 
 	if(useCubeMap == true)
 	{
@@ -141,9 +146,10 @@ PSOut PSScene(PSIn input)
 		float3 reflectionVector = reflect(incident, normalize(input.normalW));
 		float4 reflectionsColor = cubeMap.Sample(cubeSampler, normalize(reflectionVector));
 
-		output.diffuseAlbedo = reflectionsColor;
+		diffuseAlbedo = reflectionsColor;
 	}
-	else if(useBlendMap == true)
+	
+	if(useBlendMap == true)
 	{
 		blend = blendMap.Sample(anisoSampler,input.uv);
 		w1 = blend.x/(blend.x + blend.y + blend.z);
@@ -151,24 +157,18 @@ PSOut PSScene(PSIn input)
 		w3 = blend.z/(blend.x + blend.y + blend.z);
 
 		diffuseAlbedo = texture1.Sample(anisoSampler,input.uv)*w1 + texture2.Sample(anisoSampler,input.uv)*w2 + texture3.Sample(anisoSampler,input.uv)*w3;
-		output.diffuseAlbedo = float4(diffuseAlbedo);
-	}
-	else
-	{
-		diffuseAlbedo = texture1.Sample( anisoSampler , input.uv);
-		output.diffuseAlbedo = float4(diffuseAlbedo);
-		
 	}
 
 	if(useShadowMap == true)
 	{
-		diffuseAlbedo = computeShadows(input.posLightH) * diffuseAlbedo;	
+		diffuseAlbedo = computeShadows(input.posLightH) * diffuseAlbedo;
 	}
-	
+
 	output.light = 0.2f;
-	output.depth = input.depth.x / input.depth.y;
-	output.diffuseAlbedo.a = specularIntensity;
 	output.light.a = 0;
+	output.depth = input.depth.x / input.depth.y;
+	output.diffuseAlbedo = diffuseAlbedo;
+	output.diffuseAlbedo.a = specularIntensity;
 	return output;
 }
 
