@@ -32,7 +32,9 @@ float4 PSScene(PSIn input) : SV_Target
 	//float3 sum = saturate((diffuse) * light);
 	
 	//return float4(diffuse,1);
-	return float4( diffuse * light.rgb + light.a , 1 );
+	if(light.a >= 1.0f)
+		return float4((diffuse * light.rgb) , 1);
+	return float4((diffuse * light.rgb) + light.a , 1 );
 	//return float4(normal, 1.0f);
 	//return float4(light, 1.0f);
 	//return float4(sum, 1.0f);

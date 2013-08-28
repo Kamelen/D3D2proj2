@@ -234,6 +234,23 @@ HRESULT D3D11Handler::InitDirect3D()
 	viewPort.TopLeftX = 0;
 	viewPort.TopLeftY = 0;
 	this->deviceContext->RSSetViewports( 1, &viewPort );
+	
+	//For the light
+	D3D11_BLEND_DESC blendDesc;
+	ZeroMemory(&blendDesc, sizeof(blendDesc));
+
+	blendDesc.RenderTarget->BlendEnable = TRUE;
+	blendDesc.RenderTarget->SrcBlend = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget->DestBlend = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget->BlendOp = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget->SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget->DestBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget->BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	if(FAILED(this->device->CreateBlendState(&blendDesc, &blendState)))
+		return false;
+	
 
 
 	D3D11_INPUT_ELEMENT_DESC inputDesc[] = {

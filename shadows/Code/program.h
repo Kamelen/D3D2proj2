@@ -27,8 +27,6 @@ public:
 	void run(float deltaTime);
 
 private:
-
-	ID3D11BlendState *blendState;
 	vector<D3DObject> objects;
 	Terrain* map;
 	ParticleSystem *pSys;
