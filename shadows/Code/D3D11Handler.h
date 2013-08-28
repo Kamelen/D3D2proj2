@@ -11,13 +11,12 @@ class D3D11Handler : public WinHandler
 		ID3D11BlendState *blendState;
 		D3D11_VIEWPORT           viewPort;
 		ID3D11RenderTargetView  *backBufferRTV;
-		ID3D11Texture2D         *backBufferDS; // ???
-		ID3D11DepthStencilView  *backBufferDSV; //????
+		ID3D11Texture2D         *backBufferDS; 
+		ID3D11DepthStencilView  *backBufferDSV; 
 
 		ID3D11Texture2D          **RTs;
 		ID3D11RenderTargetView   **RTVs;
-		ID3D11DepthStencilView   *DSV;
-
+		
 		int nrOfTargets;
 		int nrOfShaders;
 		std::vector<Shader*>     shaders;
@@ -25,7 +24,6 @@ class D3D11Handler : public WinHandler
 
 	protected:
 		ID3D11ShaderResourceView **SRVs;
-		ID3D11ShaderResourceView *depthStencil;
 		IDXGISwapChain*         swapChain;	
 		ID3D11Device*			device;
 		ID3D11DeviceContext*	deviceContext;

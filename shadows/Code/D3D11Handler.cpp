@@ -10,7 +10,6 @@ D3D11Handler::D3D11Handler()
 	this->RTs           = NULL;
 	this->RTVs          = NULL;
 	this->SRVs          = NULL;
-	this->DSV          = NULL;
 	this->swapChain     = NULL;
 	this->device        = NULL;
 	this->deviceContext = NULL;
@@ -57,7 +56,6 @@ D3D11Handler::~D3D11Handler()
 	{
 		SAFE_DELETE(shaders[i]);
 	}
-	SAFE_RELEASE(this->DSV);
 	SAFE_RELEASE(this->device);
 	SAFE_RELEASE(this->deviceContext);
 
@@ -217,13 +215,6 @@ HRESULT D3D11Handler::InitDirect3D()
 	hr = this->device->CreateDepthStencilView( this->backBufferDS, &descDSV, &this->backBufferDSV);
 	if( FAILED(hr) )
 		return hr;
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
-	SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	SRVDesc.ViewDimension				= D3D11_SRV_DIMENSION_TEXTURE2D;
-	SRVDesc.Texture2D.MipLevels			= 1;
-	SRVDesc.Texture2D.MostDetailedMip	= 0;
-	if(FAILED(this->device->CreateShaderResourceView(this->backBufferDS, &SRVDesc, &this->depthStencil))) return false;
 
 	// Setup the viewport
 

@@ -133,7 +133,7 @@ void Terrain::createMesh()
 {
 	//Vertex* mesh = new Vertex[ terrainHeight * terrainWidth];
 	mesh.resize(terrainHeight * terrainWidth);
-	this->spacing = 1;
+	this->spacing = 5;
 	int index = 0;
 
 	float halfWidth = (terrainWidth-1) * spacing * 0.5;

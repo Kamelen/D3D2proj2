@@ -37,7 +37,7 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 		return false;
 	}
 	string textureNames[] = {"texture01.dds", "texture02.dds","texture03.dds"};
-	map = new Terrain("cloudy.Raw",256,256,0.5,0,this->device,this->deviceContext,textureNames,"terrainblend.png");
+	map = new Terrain("cloudy.Raw",256,256,1,-30,this->device,this->deviceContext,textureNames,"terrainblend.png");
 	
 	D3DXVECTOR3 position = map->getTerrainPos(254,254);
 	D3DXVECTOR3 look = D3DXVECTOR3(0,0,1);
@@ -90,14 +90,22 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 		this->objects.at(i).initBuffer(this->device,this->deviceContext);
 	}
 	
-	POINTLIGHTINSTANCE *instance = new POINTLIGHTINSTANCE[2];
-	instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(0,60,0) ,D3DXVECTOR3(1,0,0) , 100.0f);
-	instance[1] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,40,100) ,D3DXVECTOR3(0,1,0) , 100.0f);
-  
+	POINTLIGHTINSTANCE *instance = new POINTLIGHTINSTANCE[10];
+	instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(-400,60,-400) ,D3DXVECTOR3(1,0,0) , 500.0f);
+	instance[1] = POINTLIGHTINSTANCE(D3DXVECTOR3(0,40,100) ,D3DXVECTOR3(0,1,0) , 50.0f);
+	instance[2] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,60,0) ,D3DXVECTOR3(1,0,0) , 50.0f);
+	instance[3] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,40,100) ,D3DXVECTOR3(0,1,0) , 50.0f);
+	instance[4] = POINTLIGHTINSTANCE(D3DXVECTOR3(400,60,0) ,D3DXVECTOR3(1,0,0) , 50.0f);
+	instance[5] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,40,400) ,D3DXVECTOR3(0,1,0) , 50.0f);
+	instance[6] = POINTLIGHTINSTANCE(D3DXVECTOR3(150,60,300) ,D3DXVECTOR3(1,0,0) , 50.0f);
+	instance[7] = POINTLIGHTINSTANCE(D3DXVECTOR3(400,40,-400) ,D3DXVECTOR3(0,1,0) , 500.0f);
+	instance[8] = POINTLIGHTINSTANCE(D3DXVECTOR3(-400,60,400) ,D3DXVECTOR3(0,0,1) , 500.0f);
+	instance[9] = POINTLIGHTINSTANCE(D3DXVECTOR3(400,30,400) ,D3DXVECTOR3(1,1,0) , 500.0f);
+	
 	BUFFER_INIT_DESC instanceBufferDesc;
 	instanceBufferDesc.ElementSize = sizeof(POINTLIGHTINSTANCE);
 	instanceBufferDesc.InitData = &instance[0];
-	instanceBufferDesc.NumElements = 2;
+	instanceBufferDesc.NumElements = 10;
 	instanceBufferDesc.Type = VERTEX_BUFFER;
 	instanceBufferDesc.Usage = BUFFER_DEFAULT;
    
@@ -409,77 +417,25 @@ void program::render(float deltaTime)
 
 		shader->Apply(0);
 		this->deviceContext->OMSetBlendState(blendState, 0, 0xffffffff);
-		this->deviceContext->DrawInstanced(this->objects[0].getNrOfVertices(), 2, 0 , 0);
+		this->deviceContext->DrawInstanced(this->objects[0].getNrOfVertices(), 10, 0 , 0);
 		shader->SetResource("depthMap", NULL);
 		this->deviceContext->OMSetBlendState(NULL, NULL, 0xffffffff);
 	//---------------------------------
 	//fullscreen quad
 	//-------------------------------------------------------------------------------
-		mesh = new Vertex[6];
-		mesh[0] = Vertex(D3DXVECTOR3(1,-1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,0));
-		mesh[1] = Vertex(D3DXVECTOR3(-1,-1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,0));
-		mesh[2] = Vertex(D3DXVECTOR3(1,1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,1));
-	
-		mesh[3] = Vertex(D3DXVECTOR3(1,1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,1));
-		mesh[4] = Vertex(D3DXVECTOR3(-1,-1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,0));
-		mesh[5] = Vertex(D3DXVECTOR3(-1,1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,1));
-	
-		BUFFER_INIT_DESC vertexBufferDesc;
- 		vertexBufferDesc.ElementSize = sizeof(Vertex);
-		vertexBufferDesc.InitData = &mesh[0];
-		vertexBufferDesc.NumElements = 6;
-		vertexBufferDesc.Type = VERTEX_BUFFER;
-		vertexBufferDesc.Usage = BUFFER_DEFAULT;
-
-		Buffer *vB;
-		vB = new Buffer();
-		if(FAILED(vB->Init(device, deviceContext, vertexBufferDesc)))
-		{
-			return;
-		}
-		SAFE_DELETE(mesh);
-
+		
 		shader = this->setPass(2);
 		shader->SetResource("diffuseAlbedoMap", this->SRVs[0]); 
 		shader->SetResource("normalMap", this->SRVs[1]);
 		shader->SetResource("lightMap", this->SRVs[2]);
-		vB->Apply();
+		this->fullScreenQuad->Apply();
 		shader->Apply(0);
 		this->deviceContext->Draw(6, 0);
 
 		shader->SetResource("diffuseMap", NULL);
 	//----------------------------------------------------------------------
 
-
-		//DepthStencilState
-	//------------------------
-		 D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-		 ZeroMemory(&depthStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
-		 depthStencilDesc.DepthEnable = FALSE;
-		 depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		 depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-		 depthStencilDesc.StencilEnable = FALSE;
-		 depthStencilDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
-		 depthStencilDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-		 depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-		 depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-		 depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-		 depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-		 depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		 depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		 depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-		 depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-
-		 ID3D11DepthStencilState* depthStencilState;
-		 this->device->CreateDepthStencilState(&depthStencilDesc, &depthStencilState);
 	
-	//-------------------------
-	this->deviceContext->OMSetRenderTargets(1, &this->backBufferRTV, this->DSV);
-	this->deviceContext->OMSetDepthStencilState(depthStencilState, NULL);
-	this->deviceContext->OMSetDepthStencilState(NULL, NULL);
-
-	SAFE_DELETE(vB);
-
 	if(FAILED(D3D11Handler::swapChain->Present( 0, 0 )))
 	{
 		return;

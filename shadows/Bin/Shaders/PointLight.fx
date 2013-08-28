@@ -113,17 +113,11 @@ float4 PSScene(PSSceneIn input) : SV_Target
 		float3 directionToCamera = normalize(cameraPos - position);
 		float3 reflectionVector = normalize(reflect(-lightVector, normal));
 		float specularLight = specularIntensity * pow( saturate(dot(reflectionVector , directionToCamera)), specularPower);
+		specularLight = 0; 
 
 	//--------------------------------------------------------------------------------
 
-	//return float4(depth, depth,depth,depth);
-	//return float4(0,0,1,1);
 	
-	//return float4(1,1,1,1);
-	//return float4(input.lightColor, 1);
-	//return float4(attenuation,attenuation ,attenuation ,attenuation);
-	//return float4(diffuseLight.rgb, specularLight);
-
 	float4 finalLight = attenuation * lightIntensity * float4(diffuseLight.rgb , 1);
 	finalLight.a = specularLight;
 	return finalLight;
