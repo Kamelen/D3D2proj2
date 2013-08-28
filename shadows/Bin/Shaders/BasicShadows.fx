@@ -31,14 +31,8 @@ cbuffer EveryFrame
 {
 	matrix WVP;
 	matrix W;
-	matrix LightWVP;
-
-	static const float SHADOW_EPSILON = 0.000001f;
-	float SMAP_SIZE;
 
 	float texTrans;
-	float4 cameraPos;
-	bool useCubeMap;
 	bool useBlending;
 };
 
@@ -47,9 +41,6 @@ Texture2D diffuseMap2;
 Texture2D diffuseMap3;
 
 Texture2D blendMap;
-
-Texture2D shadowMap;
-TextureCube cubeMap;
 
 struct VS_INPUT
 {
@@ -73,7 +64,6 @@ PS_INPUT VS( VS_INPUT input )
 	output.Pos = mul(float4(input.Pos,1.0f), WVP);
 	output.normal = mul(input.Normal,W);    
 	output.tex = input.tex;
-	output.posLightH = mul(float4(input.Pos,1.0f), LightWVP);
 	output.PosW = mul(float4(input.Pos,1.0f), W);
 	return output;
 }
@@ -96,11 +86,6 @@ float4 PSScene(PS_INPUT input) : SV_Target
 	{
 		input.tex.x += texTrans;	
 	}
-	float3 toEye = normalize(cameraPos.xyz - input.PosW.xyz);
-	float3 incident = -toEye;
-	float3 reflectionVector = reflect(incident, normalize(input.normal));
-	float4 reflectionsColor = cubeMap.Sample(cubeSampler, normalize(reflectionVector));
-	
 
 	//get the blending of the textures if it is to be used
 	if(useBlending == true)
@@ -119,11 +104,6 @@ float4 PSScene(PS_INPUT input) : SV_Target
 		texColor = diffuseMap1.Sample(textureSampler, input.tex);
 	}
 	
-	if(useCubeMap == true)
-	{
-		return reflectionsColor;	
-	}
-
 	return float4(texColor);
 }
 

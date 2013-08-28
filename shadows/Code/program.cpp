@@ -156,23 +156,13 @@ void program::buildCubeMap(D3DXMATRIX &lightViewProj)
 		this->shader->SetMatrix("WVP" , wvp);
 		this->shader->SetMatrix("W", world);
 
-		lightWVP = world * lightViewProj;
-
-		this->shader->SetMatrix("LightWVP", lightWVP);
-
-		this->shader->SetFloat("SMAP_SIZE", 4024);
 		this->shader->SetFloat("texTrans", texTrans);
-		this->shader->SetBool("useCubeMap", true);
 		this->shader->SetBool("useBlending", true);
-
-		this->shader->SetFloat4("cameraPos",D3DXVECTOR4(cam->getPosition(),0));
 
 		this->shader->SetResource("blendMap", map->getTexture());
 		this->shader->SetResource("diffuseMap1", map->getTerTexture(0));
 		this->shader->SetResource("diffuseMap2", map->getTerTexture(1));
 		this->shader->SetResource("diffuseMap3", map->getTerTexture(2));
-		this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
-		//this->shader->SetResource("cubeMap", cubeMap->getCubemap());
 
 		this->shader->Apply(0);
 		this->deviceContext->DrawIndexed(256*256*6,0,0);
@@ -188,18 +178,10 @@ void program::buildCubeMap(D3DXMATRIX &lightViewProj)
 		this->shader->SetMatrix("WVP" , wvp);
 		this->shader->SetMatrix("W", this->objects.at(0).getWorldMatrix());
 
-
-		lightWVP = (this->objects.at(0).getWorldMatrix()) * lightViewProj;
-
-		this->shader->SetMatrix("LightWVP", lightWVP);
-		this->shader->SetFloat("SMAP_SIZE", 4024);
 		this->shader->SetFloat("texTrans", texTrans);
 		this->shader->SetBool("useCubeMap", false);
 		this->shader->SetBool("useBlending", false);
-		this->shader->SetFloat4("cameraPos",D3DXVECTOR4(cam->getPosition(),0));
 		this->shader->SetResource("diffuseMap1", map->getTerTexture(1));
-		this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
-		//this->shader->SetResource("cubeMap", cubeMap->getCubemap());
 		this->objects.at(0).getVertexBuffer()->Apply();
 		this->shader->Apply(0);
 		//this->deviceContext->Draw(this->objects.at(0).getNrOfVertices(),0);
@@ -342,46 +324,46 @@ void program::render(float deltaTime)
 
 		//ljusbuffer (vertex och instance)
 		//-----------------------------------------------------------------
-			POINTLIGHTINSTANCE *instance = new POINTLIGHTINSTANCE[2];
-			instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(0,0,0) ,D3DXVECTOR3(1,0,0) , 100f);
-			instance[1] = POINTLIGHTINSTANCE(D3DXVECTOR3(256,0,256) ,D3DXVECTOR3(0,1,0) , 100f);
-		
-			BUFFER_INIT_DESC instanceBufferDesc;
-			instanceBufferDesc.ElementSize = sizeof(POINTLIGHTINSTANCE);
-			instanceBufferDesc.InitData = &instance[0];
-			instanceBufferDesc.NumElements = 2;
-			instanceBufferDesc.Type = VERTEX_BUFFER;
-			instanceBufferDesc.Usage = BUFFER_DEFAULT;
- 		
-			Buffer* instanceBuffer;
-			instanceBuffer = new Buffer();
-			instanceBuffer->Init(this->device, this->deviceContext, instanceBufferDesc);
+	//		POINTLIGHTINSTANCE *instance = new POINTLIGHTINSTANCE[2];
+	//		instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(0,0,0) ,D3DXVECTOR3(1,0,0) , 100f);
+	//		instance[1] = POINTLIGHTINSTANCE(D3DXVECTOR3(256,0,256) ,D3DXVECTOR3(0,1,0) , 100f);
+	//	
+	//		BUFFER_INIT_DESC instanceBufferDesc;
+	//		instanceBufferDesc.ElementSize = sizeof(POINTLIGHTINSTANCE);
+	//		instanceBufferDesc.InitData = &instance[0];
+	//		instanceBufferDesc.NumElements = 2;
+	//		instanceBufferDesc.Type = VERTEX_BUFFER;
+	//		instanceBufferDesc.Usage = BUFFER_DEFAULT;
+ //		
+	//		Buffer* instanceBuffer;
+	//		instanceBuffer = new Buffer();
+	//		instanceBuffer->Init(this->device, this->deviceContext, instanceBufferDesc);
 
-			Buffer* vertexBuffer = this->objects[0].getVertexBuffer();
+	//		Buffer* vertexBuffer = this->objects[0].getVertexBuffer();
 
-			UINT strides[2] = {sizeof(Vertex) , sizeof(POINTLIGHTINSTANCE)};
-			UINT offset[2] = {0,0};
-			ID3D11Buffer* buffers[2] = {vertexBuffer , instanceBuffer};
+	//		UINT strides[2] = {sizeof(Vertex) , sizeof(POINTLIGHTINSTANCE)};
+	//		UINT offset[2] = {0,0};
+	//		ID3D11Buffer* buffers[2] = {vertexBuffer , instanceBuffer};
 
-			this->deviceContext->IASetVertexBuffers(0,2,buffers, strides, offset);
-		//------------------------------------------------------------------------------
+	//		this->deviceContext->IASetVertexBuffers(0,2,buffers, strides, offset);
+	//	//------------------------------------------------------------------------------
 
-		D3DXMatrix invertViewProj; 
-		D3DXMatrixInverse(D3DXMatrixMultiply(invertViewProj, view , proj);
+	//	D3DXMatrix invertViewProj; 
+	//	D3DXMatrixInverse(D3DXMatrixMultiply(invertViewProj, view , proj);
 
-		shader = this->setPass(1);
+	//	shader = this->setPass(1);
 
-		shader->SetFloat4("cameraPos" , D3DXVECTOR4(cam->getPosition, 0));
-		shader->SetResource("diffuseAlbedoMap" , this->SRVs[0]);
-		shader->SetResource("normalMap" , this->SRVs[1]);
-		shader->SetResource("depthMap" , this->SRVs[3];
-		shader->SetMatrix("view", view);
-		shader->SetMatrix("proj", proj);
-		shader->SetMatrix("inverViewProjection" , invertViewProj);
+	//	shader->SetFloat4("cameraPos" , D3DXVECTOR4(cam->getPosition, 0));
+	//	shader->SetResource("diffuseAlbedoMap" , this->SRVs[0]);
+	//	shader->SetResource("normalMap" , this->SRVs[1]);
+	//	shader->SetResource("depthMap" , this->SRVs[3];
+	//	shader->SetMatrix("view", view);
+	//	shader->SetMatrix("proj", proj);
+	//	shader->SetMatrix("inverViewProjection" , invertViewProj);
 
-		shader->Apply(0);
-		this->deviceContext->DrawInstanced(this->objects[0].getNrOfVertices(), 2, 0 , 0);
-	//---------------------------------
+	//	shader->Apply(0);
+	//	this->deviceContext->DrawInstanced(this->objects[0].getNrOfVertices(), 2, 0 , 0);
+	////---------------------------------
 
 
 	//fullscreen quad
