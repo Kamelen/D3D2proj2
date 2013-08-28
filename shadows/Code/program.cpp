@@ -56,9 +56,9 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	input = new Input();
 	pSys = new ParticleSystem();
 
-	pSys->addFire(this->deviceContext,this->device,D3DXVECTOR3(0,100,0),D3DXVECTOR3(1,0,0),10,5,1);
-	pSys->addCloud(this->deviceContext,this->device,D3DXVECTOR3(0,100,0),100,10,5,50,50,50);
-	pSys->addRain(this->deviceContext,this->device,D3DXVECTOR3(0,150,0),D3DXVECTOR3(0,-1,0),100,100,1,5000,100,1);
+	pSys->addFire(this->deviceContext,this->device,D3DXVECTOR3(10,100,0),D3DXVECTOR3(1,0,0),10,5,1);
+	//pSys->addCloud(this->deviceContext,this->device,D3DXVECTOR3(0,100,0),150,59,5,50,50,50);
+	pSys->addRain(this->deviceContext,this->device,D3DXVECTOR3(0,200,0),D3DXVECTOR3(0,-1,0),1000,1000,1,5000,100,4);
 	//-14 152 68
 	shadowMap = new ShadowMap(this->device, this->deviceContext,4024, 4024);
 	cubeMap = new Cubemap(1024,D3DXVECTOR3(-1,100,0),this->device);
