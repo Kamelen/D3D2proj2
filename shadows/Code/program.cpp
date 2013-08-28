@@ -91,16 +91,16 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	}
 	
 	POINTLIGHTINSTANCE *instance = new POINTLIGHTINSTANCE[10];
-	instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(-400,60,-400) ,D3DXVECTOR3(1,0,0) , 500.0f);
+	instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(-400,60,-400) ,D3DXVECTOR3(1,0,0) , 300.0f);
 	instance[1] = POINTLIGHTINSTANCE(D3DXVECTOR3(0,40,100) ,D3DXVECTOR3(0,1,0) , 50.0f);
-	instance[2] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,60,0) ,D3DXVECTOR3(1,0,0) , 50.0f);
+	instance[2] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,60,0) ,D3DXVECTOR3(1,1,1) , 300.0f);
 	instance[3] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,40,100) ,D3DXVECTOR3(0,1,0) , 50.0f);
 	instance[4] = POINTLIGHTINSTANCE(D3DXVECTOR3(400,60,0) ,D3DXVECTOR3(1,0,0) , 50.0f);
 	instance[5] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,40,400) ,D3DXVECTOR3(0,1,0) , 50.0f);
 	instance[6] = POINTLIGHTINSTANCE(D3DXVECTOR3(150,60,300) ,D3DXVECTOR3(1,0,0) , 50.0f);
-	instance[7] = POINTLIGHTINSTANCE(D3DXVECTOR3(400,40,-400) ,D3DXVECTOR3(0,1,0) , 500.0f);
-	instance[8] = POINTLIGHTINSTANCE(D3DXVECTOR3(-400,60,400) ,D3DXVECTOR3(0,0,1) , 500.0f);
-	instance[9] = POINTLIGHTINSTANCE(D3DXVECTOR3(400,30,400) ,D3DXVECTOR3(1,1,0) , 500.0f);
+	instance[7] = POINTLIGHTINSTANCE(D3DXVECTOR3(400,40,-400) ,D3DXVECTOR3(0,1,0) , 300.0f);
+	instance[8] = POINTLIGHTINSTANCE(D3DXVECTOR3(-400,60,400) ,D3DXVECTOR3(0,0,1) , 300.0f);
+	instance[9] = POINTLIGHTINSTANCE(D3DXVECTOR3(400,30,400) ,D3DXVECTOR3(1,1,0) , 300.0f);
 	
 	BUFFER_INIT_DESC instanceBufferDesc;
 	instanceBufferDesc.ElementSize = sizeof(POINTLIGHTINSTANCE);
@@ -418,7 +418,6 @@ void program::render(float deltaTime)
 		shader->Apply(0);
 		this->deviceContext->OMSetBlendState(blendState, 0, 0xffffffff);
 		this->deviceContext->DrawInstanced(this->objects[0].getNrOfVertices(), 10, 0 , 0);
-		shader->SetResource("depthMap", NULL);
 		this->deviceContext->OMSetBlendState(NULL, NULL, 0xffffffff);
 	//---------------------------------
 	//fullscreen quad
@@ -432,7 +431,7 @@ void program::render(float deltaTime)
 		shader->Apply(0);
 		this->deviceContext->Draw(6, 0);
 
-		shader->SetResource("diffuseMap", NULL);
+		
 	//----------------------------------------------------------------------
 
 	
