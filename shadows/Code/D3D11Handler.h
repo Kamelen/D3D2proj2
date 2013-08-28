@@ -8,6 +8,7 @@
 class D3D11Handler : public WinHandler
 {
 	protected:
+		ID3D11BlendState *blendState;
 		D3D11_VIEWPORT           viewPort;
 		ID3D11RenderTargetView  *backBufferRTV;
 		ID3D11Texture2D         *backBufferDS; // ???

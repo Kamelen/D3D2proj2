@@ -48,23 +48,6 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 
 	lightCam = new Camera(position, look, right, up);
 	
-
-	D3D11_BLEND_DESC blendDesc;
-	ZeroMemory(&blendDesc, sizeof(blendDesc));
-
-	blendDesc.RenderTarget->BlendEnable = TRUE;
-	blendDesc.RenderTarget->SrcBlend = D3D11_BLEND_ONE;
-	blendDesc.RenderTarget->DestBlend = D3D11_BLEND_ONE;
-	blendDesc.RenderTarget->BlendOp = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget->SrcBlendAlpha = D3D11_BLEND_ONE;
-	blendDesc.RenderTarget->DestBlendAlpha = D3D11_BLEND_ONE;
-	blendDesc.RenderTarget->BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-	
-	if(FAILED(this->device->CreateBlendState(&blendDesc, &blendState)))
-		return false;
-	
 	input = new Input();
 	pSys = new ParticleSystem();
 
@@ -109,7 +92,6 @@ void program::run(float deltaTime)
 {
 	int gameState;
 	
-	
 	gameState = update(deltaTime);
 
 	render(deltaTime);
@@ -138,9 +120,6 @@ int program::update(float deltaTime)
 	
 	return 0;
 }
-
-
-
 
 void program::buildCubeMap(D3DXMATRIX &lightViewProj)
 {

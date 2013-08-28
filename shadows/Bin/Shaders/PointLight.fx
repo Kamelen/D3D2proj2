@@ -85,6 +85,7 @@ float4 PSScene(PSSceneIn input) : SV_Target
 	//sampling av texturer
 	float4 normalData = normalMap.Sample(normalSampler, uv);
 	float3 normal = 2.0f * normalData.xyz - 1.0f;
+	normal = -normal;
 	float specularPower = normalData.a * 255;
 	float specularIntensity = diffuseAlbedoMap.Sample(diffuseSampler, uv).a;
 	float depth = depthMap.Sample(depthSampler, uv).r;
@@ -117,12 +118,16 @@ float4 PSScene(PSSceneIn input) : SV_Target
 
 	//return float4(depth, depth,depth,depth);
 	//return float4(0,0,1,1);
+	
 	//return float4(1,1,1,1);
 	//return float4(input.lightColor, 1);
 	//return float4(attenuation,attenuation ,attenuation ,attenuation);
 	//return float4(diffuseLight.rgb, specularLight);
 
-	return (attenuation * lightIntensity * float4(diffuseLight.rgb, specularLight));
+	float4 finalLight = attenuation * lightIntensity * float4(diffuseLight.rgb , 1);
+	finalLight.a = specularLight;
+	return finalLight;
+
 }
 
 
