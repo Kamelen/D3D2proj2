@@ -72,10 +72,6 @@ bool D3DObject::initBuffer(ID3D11Device *device, ID3D11DeviceContext *deviceCont
 		}
 	}
 
-	
-
-	
-	
 	return true;
 }
 

@@ -76,40 +76,22 @@ HRESULT D3D11Handler::initResources(int screenWidth, int screenHeight)
 	texDesc.MiscFlags			= 0;
 
 	this->RTs	        = new ID3D11Texture2D *[this->nrOfTargets + 1];
-	this->RTVs		    = new ID3D11RenderTargetView *[this->nrOfTargets];
+	this->RTVs		    = new ID3D11RenderTargetView *[this->nrOfTargets + 1];
 	this->SRVs		    = new ID3D11ShaderResourceView *[this->nrOfTargets + 1];
 	
-	for(int i = 0; i < this->nrOfTargets; i++)
+	for(int i = 0; i < this->nrOfTargets + 1; i++)
 	{
+		if(i == nrOfTargets)
+		{
+			texDesc.Format = DXGI_FORMAT_R32_FLOAT;
+
+		}
 		if(FAILED(this->device->CreateTexture2D(&texDesc, NULL, &this->RTs[i]))) return false;
 
 		if(FAILED(this->device->CreateRenderTargetView(this->RTs[i], NULL, &this->RTVs[i]))) return false;
 
 		if(FAILED(this->device->CreateShaderResourceView(this->RTs[i], NULL, &this->SRVs[i]))) return false;
 	}
-
-
-
-	texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-	texDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-
-	if(FAILED(this->device->CreateTexture2D(&texDesc, NULL, &this->RTs[this->nrOfTargets]))) return false;
-
-	D3D11_DEPTH_STENCIL_VIEW_DESC desc;
-	desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	desc.Flags				= 0;
-	desc.ViewDimension		= D3D11_DSV_DIMENSION_TEXTURE2D;
-	desc.Texture2D.MipSlice	= 0;
-
-	if(FAILED(this->device->CreateDepthStencilView(this->RTs[this->nrOfTargets], &desc, &this->DSV))) return false;
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
-	SRVDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-	SRVDesc.ViewDimension				= D3D11_SRV_DIMENSION_TEXTURE2D;
-	SRVDesc.Texture2D.MipLevels			= 1;
-	SRVDesc.Texture2D.MostDetailedMip	= 0;
-	if(FAILED(this->device->CreateShaderResourceView(this->RTs[this->nrOfTargets], &SRVDesc, &this->SRVs[this->nrOfTargets]))) return false;
-
 
 	return true;
 }
@@ -212,11 +194,11 @@ HRESULT D3D11Handler::InitDirect3D()
 	descDepth.Height = screenHeight;
 	descDepth.MipLevels = 1;
 	descDepth.ArraySize = 1;
-	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
+	descDepth.Format = DXGI_FORMAT_R32_TYPELESS;
 	descDepth.SampleDesc.Count = 1;
 	descDepth.SampleDesc.Quality = 0;
 	descDepth.Usage = D3D11_USAGE_DEFAULT;
-	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 	descDepth.CPUAccessFlags = 0;
 	descDepth.MiscFlags = 0;
 	hr = this->device->CreateTexture2D( &descDepth, NULL, &this->backBufferDS );
@@ -226,15 +208,19 @@ HRESULT D3D11Handler::InitDirect3D()
 	// Create the depth stencil view
 	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
 	ZeroMemory(&descDSV, sizeof(descDSV));
-	descDSV.Format = descDepth.Format;
+	descDSV.Format = DXGI_FORMAT_D32_FLOAT;
 	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	descDSV.Texture2D.MipSlice = 0;
 	hr = this->device->CreateDepthStencilView( this->backBufferDS, &descDSV, &this->backBufferDSV);
 	if( FAILED(hr) )
 		return hr;
 
-
-	this->deviceContext->OMSetRenderTargets( 1, &this->backBufferRTV, this->backBufferDSV );
+	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
+	SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	SRVDesc.ViewDimension				= D3D11_SRV_DIMENSION_TEXTURE2D;
+	SRVDesc.Texture2D.MipLevels			= 1;
+	SRVDesc.Texture2D.MostDetailedMip	= 0;
+	if(FAILED(this->device->CreateShaderResourceView(this->backBufferDS, &SRVDesc, &this->depthStencil))) return false;
 
 	// Setup the viewport
 
@@ -305,13 +291,12 @@ void D3D11Handler::clearAndBindTarget()
 	this->deviceContext->ClearRenderTargetView(this->backBufferRTV, colorClear);
 	this->deviceContext->ClearDepthStencilView(this->backBufferDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	this->deviceContext->ClearDepthStencilView(this->DSV, 1, 1.0f, 0);
+
 
 	this->deviceContext->ClearRenderTargetView(this->RTVs[0], colorClear);
-	this->deviceContext->ClearRenderTargetView(this->RTVs[1], colorClear);
-	this->deviceContext->ClearRenderTargetView(this->RTVs[2], normalClear);
-	//this->deviceContext->ClearRenderTargetView(this->RTVs[3], colorClear);
-	//this->deviceContext->ClearRenderTargetView(this->RTVs[4], colorClear);
+	this->deviceContext->ClearRenderTargetView(this->RTVs[1], normalClear);
+	this->deviceContext->ClearRenderTargetView(this->RTVs[2], colorClear);
+	this->deviceContext->ClearRenderTargetView(this->RTVs[3], depthClear);
 }
 
 Shader* D3D11Handler::setPass(int nr)
@@ -319,12 +304,12 @@ Shader* D3D11Handler::setPass(int nr)
 	switch(nr)
 	{
 		case 0:
-			this->deviceContext->OMSetRenderTargets(this->nrOfTargets, this->RTVs, this->DSV);
+			this->deviceContext->OMSetRenderTargets(this->nrOfTargets + 1, this->RTVs, this->backBufferDSV);
 			return this->shaders.at(nr);
 		break;
 
 		case 1:
-			this->deviceContext->OMSetRenderTargets(1, &this->RTVs[2] , this->DSV);
+			this->deviceContext->OMSetRenderTargets(1, &this->RTVs[2] , NULL);
 			return this->shaders.at(nr);
 			//this->deviceContext->OMSetRenderTargets(1, this->RTVs[3], NULL);
 			/*
@@ -333,7 +318,7 @@ Shader* D3D11Handler::setPass(int nr)
 		break;
 
 		case 2:
-			this->deviceContext->OMSetRenderTargets(1, &this->backBufferRTV, this->DSV);
+			this->deviceContext->OMSetRenderTargets(1, &this->backBufferRTV, NULL);
 			return this->shaders.at(nr);
 			/*
 				set lightmap, diffuse, normal map;

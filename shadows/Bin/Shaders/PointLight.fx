@@ -2,7 +2,7 @@ Texture2D normalMap        : register(t0);
 Texture2D diffuseAlbedoMap : register(t1);
 Texture2D depthMap         : register(t2);
 
-float3 cameraPos;
+float4 cameraPos;
 float lightIntensity = 5.0f;
 
 SamplerState diffuseSampler
@@ -30,7 +30,7 @@ SamplerState normalSampler
 cbuffer EveryFrame
 {
 	matrix view;
-	matrix projection;
+	matrix proj;
 	matrix invertViewProjection;
 };
 
@@ -47,12 +47,12 @@ struct VSIn
 
 struct PSSceneIn
 {
-	float4 screenPos     : SV_Position;
-	float4 screenPosition: ScreenCoord;
+	float4 screenPos      : SV_Position;
+	float4 screenPosition : ScreenCoord;
 
-	float4 worldLightPos : LIGHTPOS;
-	float3 lightColor    : LIGHTCOLOR;
-	float  lightRadius   : LIGHTRADIUS;
+	float4 worldLightPos  : LIGHTPOS;
+	float3 lightColor     : LIGHTCOLOR;
+	float  lightRadius    : LIGHTRADIUS;
 };
 
 //-----------------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ PSSceneIn VSScene(VSIn input)
 	PSSceneIn output = (PSSceneIn)0;
 
 	float3 worldPos = (input.pos * input.lightRadius) + input.lightPos;
-	output.screenPos = mul(float4(worldPos , 1) , mul(view,projection));
+	output.screenPos = mul(float4(worldPos , 1) , mul(view,proj));
 	output.screenPosition = output.screenPos;
 
 	output.worldLightPos = float4(input.lightPos, 1);
@@ -87,22 +87,21 @@ float4 PSScene(PSSceneIn input) : SV_Target
 	float3 normal = 2.0f * normalData.xyz - 1.0f;
 	float specularPower = normalData.a * 255;
 	float specularIntensity = diffuseAlbedoMap.Sample(diffuseSampler, uv).a;
-	float depth = depthMap.Sample(depthSampler, uv);
+	float depth = depthMap.Sample(depthSampler, uv).r;
 
 	//uträkning av världsposition
 	float4 position;
 	position.xy = input.screenPosition.xy;
 	position.z = depth;
 	position.w = 1.0f;
-	position = mul(position, invertViewProjection);
+	position = mul(position , invertViewProjection);
 	position /= position.w;
-
 
 	//ljusberäkningar
 	//--------------------------------------------------------------------------------
 		//Attenuation
-		float3 lightVector = input.worldLightPos.rgb - position.rgb;
-		float attenuation = saturate(1.0f - length(lightVector)/input.lightRadius);
+		float3 lightVector = input.worldLightPos.xyz - position.xyz;
+		float attenuation =  saturate(1.0f - (length(lightVector)/input.lightRadius));
 
 		//diffuseLight
 		lightVector = normalize(lightVector);
@@ -116,6 +115,8 @@ float4 PSScene(PSSceneIn input) : SV_Target
 
 	//--------------------------------------------------------------------------------
 
+	//return float4(depth, depth,depth,depth);
+	//return float4(0,0,1,1);
 	//return float4(1,1,1,1);
 	//return float4(input.lightColor, 1);
 	//return float4(attenuation,attenuation ,attenuation ,attenuation);
@@ -130,7 +131,7 @@ float4 PSScene(PSSceneIn input) : SV_Target
 //-----------------------------------------------------------------------------------------
 RasterizerState LightCulling
 {
-	CullMode = BACK;
+	CullMode = NONE;
 };
 RasterizerState wire
 {

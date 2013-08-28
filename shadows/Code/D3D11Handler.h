@@ -24,6 +24,7 @@ class D3D11Handler : public WinHandler
 
 	protected:
 		ID3D11ShaderResourceView **SRVs;
+		ID3D11ShaderResourceView *depthStencil;
 		IDXGISwapChain*         swapChain;	
 		ID3D11Device*			device;
 		ID3D11DeviceContext*	deviceContext;

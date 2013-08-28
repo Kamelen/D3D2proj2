@@ -65,12 +65,15 @@ struct PSIn
 	float4 normalW : NORMAL;
 	float4 posLightH : TEXTCOORD0;
 	float2 uv      : TEXTCOORD1;
+	float2 depth   : DEPTH;
 };
 
 struct PSOut
 {
 	float4 diffuseAlbedo  : SV_TARGET0;
 	float4 normal         : SV_TARGET1;
+	float4 light          : SV_TARGET2;
+	float4 depth          : SV_TARGET3;
 };
 
 float computeShadows(float4 posLightH)
@@ -109,6 +112,7 @@ PSIn VSScene(VSIn input)
 	output.posLightH = mul(float4(input.pos,1.0f), lightWVP);
 	output.normalW = normalize(mul(float4(input.normal, 0) , world));
 	output.uv = input.uv;
+	output.depth = float2(output.posCS.z , output.posCS.w);
 	return output;
 }
 
@@ -129,8 +133,6 @@ PSOut PSScene(PSIn input)
 
 	float4 normalW = float4( 0.5f * (normalize(input.normalW).rgb + 1.0f), specularPower);
 	output.normal = normalW;
-	
-
 
 	if(useCubeMap == true)
 	{
@@ -162,15 +164,17 @@ PSOut PSScene(PSIn input)
 	{
 		diffuseAlbedo = computeShadows(input.posLightH) * diffuseAlbedo;	
 	}
-
-	diffuseAlbedo.a = specularIntensity;
-
+	
+	output.light = 0.2f;
+	output.depth = input.depth.x / input.depth.y;
+	output.diffuseAlbedo.a = specularIntensity;
+	output.light.a = 0;
 	return output;
 }
 
 RasterizerState NoCulling
 {
-	CullMode = NONE;
+	CullMode = BACK;
 };
 RasterizerState wire
 {

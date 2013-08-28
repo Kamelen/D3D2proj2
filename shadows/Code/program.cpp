@@ -45,6 +45,22 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 
 	lightCam = new Camera(position, look, right, up);
 	
+
+	D3D11_BLEND_DESC blendDesc;
+	ZeroMemory(&blendDesc, sizeof(blendDesc));
+
+	blendDesc.RenderTarget->BlendEnable = TRUE;
+	blendDesc.RenderTarget->SrcBlend = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget->DestBlend = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget->BlendOp = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget->SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget->DestBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget->BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget->RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	
+	if(FAILED(this->device->CreateBlendState(&blendDesc, &blendState)))
+		return false;
 	
 	input = new Input();
 	pSys = new ParticleSystem();
@@ -71,7 +87,9 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	D3DXMatrixScaling(&world,4,4,4);
 	D3DXMatrixTranslation(&translate,-14,152,68);
 
-	this->objects.push_back(D3DObject(objReader->getOBJfromFile("coolaModellerFixed/sphere.obj", this->nrOfVerts), this->nrOfVerts, (world * translate)));
+	this->objects.push_back(D3DObject(objReader->getOBJfromFile("coolaModellerFixed/sphere2.obj", this->nrOfVerts), this->nrOfVerts, (world * translate)));
+	
+	//this->objects.push_back(D3DObject(objReader->getOBJfromFile("C:\sphere2.obj", this->nrOfVerts), this->nrOfVerts, (world * translate)));
 	
 	for(int i = 0; i < this->objects.size(); i++)
 	{
@@ -262,6 +280,7 @@ void program::buildShadowMap(D3DXMATRIX &lightViewProj)
 
 void program::render(float deltaTime)
 {
+	static ID3D11ShaderResourceView* const nullPointer[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 	Shader* shader;
 	D3DXMATRIX world, view, proj, wvp, lightWVP, translate, rotate, lightViewProj;
 
@@ -291,7 +310,7 @@ void program::render(float deltaTime)
 		shader->SetMatrix("view", view);
 		shader->SetMatrix("proj", proj);
 		shader->SetBool("useCubeMap", false);
-		shader->SetBool("useBlendMap", true);
+		shader->SetBool("useBlendMap", false);
 		shader->SetBool("useShadowMap", false);
 		shader->SetFloat4("cameraPos", D3DXVECTOR4(cam->getPosition(),1));
 		shader->SetResource("texture1" , map->getTerTexture(0));
@@ -303,7 +322,7 @@ void program::render(float deltaTime)
 
 		this->objects[0].getVertexBuffer()->Apply();
 		shader->SetBool("useBlendMap", false);
-		shader->SetBool("useCubeMap", true);
+		shader->SetBool("useCubeMap", false);
 		shader->SetResource("cubeMap",this->cubeMap->getCubemap());
 		shader->SetMatrix("world" , this->objects[0].getWorldMatrix());
 		shader->Apply(0);
@@ -317,8 +336,8 @@ void program::render(float deltaTime)
 		//ljusbuffer (vertex och instance)
 		//-----------------------------------------------------------------
 			POINTLIGHTINSTANCE *instance = new POINTLIGHTINSTANCE[2];
-			instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(0,0,0) ,D3DXVECTOR3(1,0,0) , 100f);
-			instance[1] = POINTLIGHTINSTANCE(D3DXVECTOR3(256,0,256) ,D3DXVECTOR3(0,1,0) , 100f);
+			instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(0,145,0) ,D3DXVECTOR3(1,0,0) , 20.0f);
+			instance[1] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,145,100) ,D3DXVECTOR3(0,1,0) , 20.0f);
 		
 			BUFFER_INIT_DESC instanceBufferDesc;
 			instanceBufferDesc.ElementSize = sizeof(POINTLIGHTINSTANCE);
@@ -335,28 +354,31 @@ void program::render(float deltaTime)
 
 			UINT strides[2] = {sizeof(Vertex) , sizeof(POINTLIGHTINSTANCE)};
 			UINT offset[2] = {0,0};
-			ID3D11Buffer* buffers[2] = {vertexBuffer , instanceBuffer};
+			ID3D11Buffer* buffers[2] = {vertexBuffer->GetBufferPointer() , instanceBuffer->GetBufferPointer()};
 
 			this->deviceContext->IASetVertexBuffers(0,2,buffers, strides, offset);
 		//------------------------------------------------------------------------------
 
-		D3DXMatrix invertViewProj; 
-		D3DXMatrixInverse(D3DXMatrixMultiply(invertViewProj, view , proj);
-
+		D3DXMATRIX invertViewProj, viewProj; 
+		viewProj = view * proj;
+		D3DXMatrixInverse(&invertViewProj , NULL , &viewProj);
 		shader = this->setPass(1);
-
-		shader->SetFloat4("cameraPos" , D3DXVECTOR4(cam->getPosition, 0));
-		shader->SetResource("diffuseAlbedoMap" , this->SRVs[0]);
+		D3DXVECTOR4 pos = D3DXVECTOR4(cam->getPosition(), 1);
+		shader->SetFloat4("cameraPos" , pos);
+		deviceContext->PSSetShaderResources(1, 1, &SRVs[0]);
+		//shader->SetResource("diffuseAlbedoMap" , this->SRVs[0]);
 		shader->SetResource("normalMap" , this->SRVs[1]);
-		shader->SetResource("depthMap" , this->SRVs[3];
+		shader->SetResource("depthMap" , this->SRVs[3]);
 		shader->SetMatrix("view", view);
 		shader->SetMatrix("proj", proj);
-		shader->SetMatrix("inverViewProjection" , invertViewProj);
+		shader->SetMatrix("invertViewProjection" , invertViewProj);
 
 		shader->Apply(0);
+		this->deviceContext->OMSetBlendState(blendState, 0, 0xffffffff);
 		this->deviceContext->DrawInstanced(this->objects[0].getNrOfVertices(), 2, 0 , 0);
+		shader->SetResource("depthMap", NULL);
+		this->deviceContext->OMSetBlendState(NULL, NULL, 0xffffffff);
 	//---------------------------------
-
 
 	//fullscreen quad
 	//-------------------------------------------------------------------------------
@@ -390,6 +412,8 @@ void program::render(float deltaTime)
 		vB->Apply();
 		shader->Apply(0);
 		this->deviceContext->Draw(6, 0);
+
+		shader->SetResource("diffuseMap", NULL);
 	//----------------------------------------------------------------------
 
 
@@ -414,7 +438,7 @@ void program::render(float deltaTime)
 
 		 ID3D11DepthStencilState* depthStencilState;
 		 this->device->CreateDepthStencilState(&depthStencilDesc, &depthStencilState);
-
+	
 	//-------------------------
 	this->deviceContext->OMSetRenderTargets(1, &this->backBufferRTV, this->DSV);
 	this->deviceContext->OMSetDepthStencilState(depthStencilState, NULL);
@@ -479,7 +503,7 @@ void program::render(float deltaTime)
 	{
 		return;
 	}
-		
+	deviceContext->PSSetShaderResources(0, 8, nullPointer);
 }
 void program::mouseOnMove(WPARAM btnState, int x, int y)
 {
