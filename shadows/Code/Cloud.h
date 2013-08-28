@@ -18,11 +18,11 @@ class Cloud : public ParticlePolicy
 		void initiate(ID3D11DeviceContext *immediateContext, ID3D11Device *device);
 
 	public:
-		Cloud(ID3D11DeviceContext* deviceContext, ID3D11Device* device, std::string shaderFileName ,D3DXVECTOR3 color, D3DXVECTOR3 position , int intensity, int timeToLive, float velocity, float lengthX, float lengthY, float lengthZ);
+		Cloud(ID3D11DeviceContext* deviceContext, ID3D11Device* device, D3DXVECTOR3 position , int intensity, int timeToLive, float velocity, float lengthX, float lengthY, float lengthZ);
 		~Cloud();
 
 		void update(ID3D11DeviceContext *immediateContext, ID3D11Device *device);
-		void render(ID3D11DeviceContext *immediateContext, D3DXMATRIX wvp);
+		void render(ID3D11DeviceContext *immediateContext, Shader * shader);
 };
 
 #endif

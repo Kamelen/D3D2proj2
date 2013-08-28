@@ -1,6 +1,6 @@
 #include "Cloud.h"
 
-Cloud::Cloud(ID3D11DeviceContext* deviceContext, ID3D11Device* device, std::string shaderFileName , D3DXVECTOR3 color, D3DXVECTOR3 position , int intensity, int timeToLive, float velocity, float lengthX, float lengthY, float lengthZ)
+Cloud::Cloud(ID3D11DeviceContext* deviceContext, ID3D11Device* device, D3DXVECTOR3 position , int intensity, int timeToLive, float velocity, float lengthX, float lengthY, float lengthZ)
 {
 	this->nrOfVertsPerParticle = 1;
 	this->intensity = intensity;
@@ -12,17 +12,6 @@ Cloud::Cloud(ID3D11DeviceContext* deviceContext, ID3D11Device* device, std::stri
 	this->lengthZ = lengthZ;
 
 	this->emitter = new BaseParticle(position, D3DXVECTOR3(0,1,0), timeToLive, velocity);
-
-	D3D11_INPUT_ELEMENT_DESC inputDesc[] = {
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-	};
-
-	shaderFileName = "../Shaders/" + shaderFileName;
-
-	this->shader = new Shader();
-	if(FAILED(this->shader->Init(device, deviceContext, (char*)shaderFileName.c_str(), inputDesc, 3))){}
 }
 
 Cloud::~Cloud()
@@ -31,11 +20,6 @@ Cloud::~Cloud()
 	{
 		delete this->vBuffer;
 		this->vBuffer = NULL;
-	}
-	if(this->shader)
-	{
-		delete shader;
-		this->shader = NULL;
 	}
 	
 	if(this->emitter)
@@ -65,15 +49,24 @@ void Cloud::update(ID3D11DeviceContext *immediateContext, ID3D11Device *device)
 	initiate(immediateContext, device);
 }
 
-void Cloud::render(ID3D11DeviceContext *immediateContext, D3DXMATRIX wvp)
+void Cloud::render(ID3D11DeviceContext *immediateContext,Shader* shader)
 {
 	immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	
+	D3DXMATRIX world;
+	D3DXMatrixIdentity(&world);
 
 	this->vBuffer->Apply();
-	this->shader->SetMatrix("gWVP", wvp);
+	shader->SetMatrix("world", world);
+	shader->SetBool("useCubeMap",false);
+	shader->SetBool("useShadowMap",false);
+	shader->SetBool("useBlendMap",false);
 
-	this->shader->Apply(0);
+
+	shader->Apply(0);
 	immediateContext->Draw(this->vertices.size(),0);
+
+	immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 }
 

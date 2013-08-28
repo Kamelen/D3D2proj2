@@ -1,6 +1,6 @@
 #include "Fire.h"
 
-Fire::Fire(ID3D11DeviceContext* deviceContext, ID3D11Device* device, std::string shaderFileName , std::string textureFileName, D3DXVECTOR3 position, D3DXVECTOR3 coneDir, int intensity, int timeToLive, float velocity)
+Fire::Fire(ID3D11DeviceContext* deviceContext, ID3D11Device* device, D3DXVECTOR3 position, D3DXVECTOR3 coneDir, int intensity, int timeToLive, float velocity)
 {
 	this->nrOfVertsPerParticle = 4;
 	this->intensity = intensity;
@@ -9,29 +9,10 @@ Fire::Fire(ID3D11DeviceContext* deviceContext, ID3D11Device* device, std::string
 	this->iBuffer = NULL;
 
 	this->emitter = new BaseParticle(position , coneDir, timeToLive , velocity);
-	
-	if(FAILED(D3DX11CreateShaderResourceViewFromFile(device, textureFileName.c_str() , NULL , NULL, &this->texture, NULL))){}
-
-	D3D11_INPUT_ELEMENT_DESC inputDesc[] = {
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-	};
-
-	shaderFileName = "../Shaders/" + shaderFileName;
-
-	this->shader = new Shader();
-	if(FAILED(this->shader->Init(device, deviceContext, (char*)shaderFileName.c_str(), inputDesc, 3))){}
 }
 
 Fire::~Fire()
-{
-	if(this->shader)
-	{
-		delete this->shader;
-		this->shader = NULL;
-	}
-	
+{	
 
 	if(this->vBuffer)
 	{
@@ -51,14 +32,6 @@ Fire::~Fire()
 		delete this->iBuffer;
 		this->iBuffer = NULL;
 	}
-
-	if(this->texture)
-	{
-		this->texture->Release();
-		this->texture = NULL;
-	}
-	
-
 	
 }
 
@@ -83,16 +56,18 @@ void Fire::update(ID3D11DeviceContext *immediateContext, ID3D11Device *device)
 	initiate(immediateContext, device);
 }
 
-void Fire::render(ID3D11DeviceContext *deviceContext, D3DXMATRIX wvp)
+void Fire::render(ID3D11DeviceContext *deviceContext, Shader* shader)
 {
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+	D3DXMATRIX world;
+	D3DXMatrixIdentity(&world);
 	this->vBuffer->Apply();
 	this->iBuffer->Apply();
-	this->shader->SetMatrix("gWVP", wvp);
-
-	shader->SetResource("Texture" , this->texture);
-	this->shader->Apply(0);
+	shader->SetMatrix("world", world);
+	shader->SetBool("useCubeMap",false);
+	shader->SetBool("useShadowMap",false);
+	shader->SetBool("useBlendMap",false);
+	shader->Apply(0);
 	deviceContext->DrawIndexed((UINT)this->indices.size(),0,0);
 }
 

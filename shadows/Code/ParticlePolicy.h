@@ -9,7 +9,6 @@
 class ParticlePolicy
 {
 	protected:
-		Shader *shader;
 		Buffer *vBuffer;
 		
 		int nrOfVertsPerParticle;
@@ -25,7 +24,7 @@ class ParticlePolicy
 
 	public:
 		virtual void update(ID3D11DeviceContext *immediateContext, ID3D11Device* device) = 0;
-		virtual void render(ID3D11DeviceContext *immediateContext, D3DXMATRIX wvp) = 0;
+		virtual void render(ID3D11DeviceContext *immediateContext, Shader* shader) = 0;
 
 		virtual ~ParticlePolicy(){};
 

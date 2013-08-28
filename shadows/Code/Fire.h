@@ -18,10 +18,10 @@ class Fire : public ParticlePolicy
 		void initiate(ID3D11DeviceContext *immediateContext, ID3D11Device *device);
 
 	public:
-		Fire(ID3D11DeviceContext* immediateContext, ID3D11Device* device, std::string shaderFileName , std::string textureFileName, D3DXVECTOR3 position, D3DXVECTOR3 coneDir, int intensity, int timeToLive, float velocity);
+		Fire(ID3D11DeviceContext* immediateContext, ID3D11Device* device,D3DXVECTOR3 position, D3DXVECTOR3 coneDir, int intensity, int timeToLive, float velocity);
 		~Fire();
 		void update(ID3D11DeviceContext *immediateContext, ID3D11Device *device);
-		void render(ID3D11DeviceContext *immediateContext, D3DXMATRIX wvp);
+		void render(ID3D11DeviceContext *immediateContext, Shader* shader);
 };
 
 #endif

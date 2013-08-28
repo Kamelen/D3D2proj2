@@ -68,7 +68,9 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	input = new Input();
 	pSys = new ParticleSystem();
 
-	pSys->addRain(this->deviceContext,this->device,"Rain.fx",D3DXVECTOR3(0,150,0),D3DXVECTOR3(0,-1,0),100,100,1,5000,100,1);
+	pSys->addFire(this->deviceContext,this->device,D3DXVECTOR3(0,100,0),D3DXVECTOR3(1,0,0),10,5,1);
+	pSys->addCloud(this->deviceContext,this->device,D3DXVECTOR3(0,100,0),100,10,5,50,50,50);
+	pSys->addRain(this->deviceContext,this->device,D3DXVECTOR3(0,150,0),D3DXVECTOR3(0,-1,0),100,100,1,5000,100,1);
 	//-14 152 68
 	shadowMap = new ShadowMap(this->device, this->deviceContext,4024, 4024);
 	cubeMap = new Cubemap(1024,D3DXVECTOR3(-1,100,0),this->device);
@@ -87,10 +89,11 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	billboardTest = new Billboard(mesh,6,D3DXVECTOR3(0,180,0),this->device,this->deviceContext);
 
 	D3DXMATRIX world, translate;
-	D3DXMatrixScaling(&world,4,4,4);
+	D3DXMatrixScaling(&world,10,10,10);
 	D3DXMatrixTranslation(&translate,-1,100,0);
 
 	this->objects.push_back(D3DObject(objReader->getOBJfromFile("coolaModellerFixed/sphere2.obj", this->nrOfVerts), this->nrOfVerts, (world * translate)));
+	this->objects.push_back(D3DObject(objReader->getOBJfromFile("coolaModellerFixed/sphere.obj", this->nrOfVerts), this->nrOfVerts, (world * translate)));
 	
 	//this->objects.push_back(D3DObject(objReader->getOBJfromFile("C:\sphere2.obj", this->nrOfVerts), this->nrOfVerts, (world * translate)));
 	
@@ -184,7 +187,6 @@ void program::buildCubeMap(D3DXMATRIX &lightViewProj)
 
 		this->shader->Apply(0);
 		this->deviceContext->DrawIndexed(256*256*6,0,0);
-		this->pSys->render(deviceContext,wvp);
 
 		D3DXMatrixScaling(&world,0.1f,0.1f,0.1f);
 		D3DXMatrixTranslation(&translate,1.0f,150.0f,0.0f);
@@ -194,7 +196,7 @@ void program::buildCubeMap(D3DXMATRIX &lightViewProj)
 		this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		this->shader->SetMatrix("WVP" , wvp);
-		this->shader->SetMatrix("W", this->objects.at(0).getWorldMatrix());
+		this->shader->SetMatrix("W", this->objects.at(1).getWorldMatrix());
 
 		this->shader->SetFloat("texTrans", texTrans);
 		this->shader->SetBool("useCubeMap", false);
@@ -317,16 +319,16 @@ void program::render(float deltaTime)
 
 
 		//rita ut en sfär med cubemap på
-		this->objects[0].getVertexBuffer()->Apply();
+		this->objects[1].getVertexBuffer()->Apply();
 		shader->SetBool("useBlendMap", false);
 
 		shader->SetBool("useCubeMap", true);
 		shader->SetBool("useShadowMap",false);
 		shader->SetFloat("texTrans", 0);
 		shader->SetResource("cubeMap",this->cubeMap->getCubemap());
-		shader->SetMatrix("world" , this->objects[0].getWorldMatrix());
+		shader->SetMatrix("world" , this->objects[1].getWorldMatrix());
 		shader->Apply(0);
-		this->deviceContext->Draw(this->objects[0].getNrOfVertices(),0);
+		this->deviceContext->Draw(this->objects[1].getNrOfVertices(),0);
 
 		//rita ut billboard
 		this->billboardTest->getVertexBuffer()->Apply();
@@ -338,6 +340,9 @@ void program::render(float deltaTime)
 		shader->SetMatrix("world" , billboardTest->getUpdatedWorldMat(this->cam->getPosition()));
 		shader->Apply(0);
 		this->deviceContext->Draw(6,0);
+
+		this->pSys->render(deviceContext, shader);
+
 	//---------------------------------------------------------
 
 	//Light  Pass
@@ -455,63 +460,8 @@ void program::render(float deltaTime)
 	//-------------------------
 	this->deviceContext->OMSetRenderTargets(1, &this->backBufferRTV, this->DSV);
 	this->deviceContext->OMSetDepthStencilState(depthStencilState, NULL);
-	this->pSys->render(deviceContext,wvp);
 	this->deviceContext->OMSetDepthStencilState(NULL, NULL);
-	//Shadowmap grejer
-	/*
-	lightWVP = world * lightViewProj;
 
-	this->shader->SetMatrix("LightWVP", lightWVP);
-
-	this->shader->SetFloat("SMAP_SIZE", 4024);
-	this->shader->SetFloat("texTrans", texTrans);
-	this->shader->SetBool("useCubeMap", false);
-	this->shader->SetFloat4("cameraPos",D3DXVECTOR4(cam->getPosition(),0));
-	this->shader->SetResource("diffuseMap1", map->getTerTexture(1));
-	this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
-	
-	/******************************************************************
-	this->shader->SetResource("cubeMap", cubeMap->getCubemap());
-
-	this->shader->Apply(0);
-	this->deviceContext->DrawIndexed(256*256*6,0,0);
-	this->pSys->render(deviceContext,wvp);
-	/******************************************************************
-
-	D3DXMatrixScaling(&world,0.1,0.1,0.1);
-	D3DXMatrixTranslation(&translate,1,150,0);
-	
-	wvp = (this->objects.at(0).getWorldMatrix()) * view * proj;
-	
-	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	this->shader->SetMatrix("WVP" , wvp);
-	this->shader->SetMatrix("W", this->objects.at(0).getWorldMatrix());
-
-
-	lightWVP = (this->objects.at(0).getWorldMatrix()) * lightViewProj;
-
-	this->shader->SetMatrix("LightWVP", lightWVP);
-	this->shader->SetFloat("SMAP_SIZE", 4024);
-	this->shader->SetFloat("texTrans", texTrans);
-	this->shader->SetBool("useCubeMap", true);
-	this->shader->SetFloat4("cameraPos",D3DXVECTOR4(cam->getPosition(),0));
-	this->shader->SetResource("diffuseMap1", map->getTerTexture(1));
-	this->shader->SetResource("shadowMap", this->shadowMap->DepthMapSRV());
-	this->shader->SetResource("cubeMap", cubeMap->getCubemap());
-	this->objects.at(0).getVertexBuffer()->Apply();
-	this->shader->Apply(0);
-	this->deviceContext->Draw(this->objects.at(0).getNrOfVertices(),0);
-	world = billboardTest->getUpdatedWorldMat(this->cam->getPosition());
-	wvp = world * view * proj;
-
-	this->shader->SetMatrix("W",world);
-	this->shader->SetMatrix("WVP" , wvp);
-	this->shader->SetFloat("texTrans", texTrans);
-	this->shader->Apply(0);
-	billboardTest->getVertexBuffer()->Apply();
-	this->deviceContext->Draw(billboardTest->getNrOfVerts(),0);
-	*/
 	SAFE_DELETE(vB);
 
 	if(FAILED(D3D11Handler::swapChain->Present( 0, 0 )))
@@ -561,10 +511,6 @@ void program::checkKeyBoard(float deltaTime)
 		}
 	}
 	
-	if(input->checkKeyDown('K'))
-	{
-		cam->getPosition();
-	}
 }
 
 

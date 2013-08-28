@@ -5,7 +5,7 @@ Rain::Rain(void)
 {
 }
 
-Rain::Rain(ID3D11DeviceContext* immediateContext, ID3D11Device* device, string shaderFileName, D3DXVECTOR3 startPosition, D3DXVECTOR3 direction, int halfLengthX, int halfLengthZ, int spacing, int intensity, int timeToLive, float velocity)
+Rain::Rain(ID3D11DeviceContext* immediateContext, ID3D11Device* device, D3DXVECTOR3 startPosition, D3DXVECTOR3 direction, int halfLengthX, int halfLengthZ, int spacing, int intensity, int timeToLive, float velocity)
 {
 	this->emitter = new BaseParticle(startPosition,direction,timeToLive,velocity);
 	this->nrOfVertsPerParticle = 2;
@@ -14,19 +14,7 @@ Rain::Rain(ID3D11DeviceContext* immediateContext, ID3D11Device* device, string s
 	this->spacing = spacing;
 	this->intensity = intensity;
 
-	D3D11_INPUT_ELEMENT_DESC inputDesc[] = 
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	shaderFileName = "../Shaders/" + shaderFileName;
-
-	shader = new Shader();
-	this->shader->Init(device, immediateContext, (char*)shaderFileName.c_str(), inputDesc, 3);
 	this->vBuffer = NULL;
-
 }
 
 
@@ -37,10 +25,6 @@ Rain::~Rain(void)
 		delete vBuffer;
 	}
 
-	if(shader)
-	{
-		delete shader;
-	}
 	if(emitter)
 	{
 		delete emitter;
@@ -131,21 +115,27 @@ void Rain::update(ID3D11DeviceContext *immediateContext, ID3D11Device* device)
 	initiate(immediateContext,device);
 }
 
-void Rain::render(ID3D11DeviceContext *immediateContext, D3DXMATRIX wvp)
+void Rain::render(ID3D11DeviceContext *immediateContext, Shader* shader)
 {
 
 	//set topology
 	immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	D3DXMATRIX world;
+	D3DXMatrixIdentity(&world);
 
-	//send texture and world view projection matrix
-	this->shader->SetMatrix("WVP", wvp);
+	shader->SetMatrix("world", world);
+	shader->SetBool("useCubeMap",false);
+	shader->SetBool("useShadowMap",false);
+	shader->SetBool("useBlendMap",false);
 
 	//apply shader and buffer
 	this->vBuffer->Apply();
-	this->shader->Apply(0);
+	shader->Apply(0);
 
 
 	//draw call
 	immediateContext->Draw(this->mesh.size(),0);
+	
+	immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	
 }
