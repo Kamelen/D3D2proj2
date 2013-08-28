@@ -37,6 +37,13 @@ private:
 	Buffer* vBuffer;
 	Vertex* mesh;
 
+	ID3D11Buffer *instancedBuffers[2];
+	UINT strides[2];
+	UINT offset[2];
+
+	Buffer* fullScreenQuad;
+	Buffer* instanceBuffer;
+
 	ShadowMap* shadowMap;
 
 	Camera* cam;

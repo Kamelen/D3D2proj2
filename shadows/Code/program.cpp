@@ -18,6 +18,11 @@ program::~program(void)
 	SAFE_DELETE(cubeMap);
 	SAFE_DELETE(shadowMap);
 	SAFE_DELETE(objReader);
+
+	SAFE_DELETE(this->fullScreenQuad);
+	SAFE_RELEASE(this->instancedBuffers[0]);
+	SAFE_RELEASE(this->instancedBuffers[1]);
+	SAFE_DELETE(instanceBuffer);
 } 
 
 bool program::initiate(HINSTANCE hInstance, int nCmdShow)
@@ -72,7 +77,7 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 	billboardTest = new Billboard(mesh,6,D3DXVECTOR3(0,180,0),this->device,this->deviceContext);
 
 	D3DXMATRIX world, translate;
-	D3DXMatrixScaling(&world,10,10,10);
+	D3DXMatrixScaling(&world,4,4,4);
 	D3DXMatrixTranslation(&translate,-1,100,0);
 
 	this->objects.push_back(D3DObject(objReader->getOBJfromFile("coolaModellerFixed/sphere2.obj", this->nrOfVerts), this->nrOfVerts, (world * translate)));
@@ -85,6 +90,59 @@ bool program::initiate(HINSTANCE hInstance, int nCmdShow)
 		this->objects.at(i).initBuffer(this->device,this->deviceContext);
 	}
 	
+	POINTLIGHTINSTANCE *instance = new POINTLIGHTINSTANCE[2];
+	instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(0,60,0) ,D3DXVECTOR3(1,0,0) , 100.0f);
+	instance[1] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,40,100) ,D3DXVECTOR3(0,1,0) , 100.0f);
+  
+	BUFFER_INIT_DESC instanceBufferDesc;
+	instanceBufferDesc.ElementSize = sizeof(POINTLIGHTINSTANCE);
+	instanceBufferDesc.InitData = &instance[0];
+	instanceBufferDesc.NumElements = 2;
+	instanceBufferDesc.Type = VERTEX_BUFFER;
+	instanceBufferDesc.Usage = BUFFER_DEFAULT;
+   
+	instanceBuffer = new Buffer();
+	instanceBuffer->Init(this->device, this->deviceContext, instanceBufferDesc);
+
+	Buffer* vertexBuffer = this->objects[0].getVertexBuffer();
+
+	this->strides[0] = sizeof(Vertex); 
+	this->strides[1] = sizeof(POINTLIGHTINSTANCE);
+ 
+	this->offset[0] = 0;
+	this->offset[1] = 0;
+
+	instancedBuffers[0] = vertexBuffer->GetBufferPointer();
+	instancedBuffers[1] = instanceBuffer->GetBufferPointer();
+ 
+	
+	SAFE_DELETE(instance);
+
+
+	mesh = new Vertex[6];
+	mesh[0] = Vertex(D3DXVECTOR3(1,-1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,0));
+	mesh[1] = Vertex(D3DXVECTOR3(-1,-1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,0));
+	mesh[2] = Vertex(D3DXVECTOR3(1,1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,1));
+ 
+	mesh[3] = Vertex(D3DXVECTOR3(1,1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(0,1));
+	mesh[4] = Vertex(D3DXVECTOR3(-1,-1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,0));
+	mesh[5] = Vertex(D3DXVECTOR3(-1,1,0) ,D3DXVECTOR3(0,0,-1),D3DXVECTOR2(1,1));
+ 
+	BUFFER_INIT_DESC vertexBufferDesc;
+	vertexBufferDesc.ElementSize = sizeof(Vertex);
+	vertexBufferDesc.InitData = &mesh[0];
+	vertexBufferDesc.NumElements = 6;
+	vertexBufferDesc.Type = VERTEX_BUFFER;
+	vertexBufferDesc.Usage = BUFFER_DEFAULT;
+
+	this->fullScreenQuad = new Buffer();
+	if(FAILED(this->fullScreenQuad->Init(device, deviceContext, vertexBufferDesc)))
+	{
+	return false;
+	}
+ 
+	delete mesh;
+
 	return true;
 }
 
@@ -321,6 +379,7 @@ void program::render(float deltaTime)
 		this->deviceContext->Draw(6,0);
 
 		this->pSys->render(deviceContext, shader);
+		
 
 	//---------------------------------------------------------
 
@@ -328,30 +387,10 @@ void program::render(float deltaTime)
 	//----------------------------------
 
 		//ljusbuffer (vertex och instance)
+		this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		this->deviceContext->IASetVertexBuffers(0,2, this->instancedBuffers, this->strides, this->offset);
 		//-----------------------------------------------------------------
 
-			POINTLIGHTINSTANCE *instance = new POINTLIGHTINSTANCE[2];
-			instance[0] = POINTLIGHTINSTANCE(D3DXVECTOR3(0,145,0) ,D3DXVECTOR3(1,0,0) , 100.0f);
-			instance[1] = POINTLIGHTINSTANCE(D3DXVECTOR3(100,145,100) ,D3DXVECTOR3(0,1,0) , 100.0f);
-		
-			BUFFER_INIT_DESC instanceBufferDesc;
-			instanceBufferDesc.ElementSize = sizeof(POINTLIGHTINSTANCE);
-			instanceBufferDesc.InitData = &instance[0];
-			instanceBufferDesc.NumElements = 2;
-			instanceBufferDesc.Type = VERTEX_BUFFER;
-			instanceBufferDesc.Usage = BUFFER_DEFAULT;
- 		
-			Buffer* instanceBuffer;
-			instanceBuffer = new Buffer();
-			instanceBuffer->Init(this->device, this->deviceContext, instanceBufferDesc);
-
-			Buffer* vertexBuffer = this->objects[0].getVertexBuffer();
-
-			UINT strides[2] = {sizeof(Vertex) , sizeof(POINTLIGHTINSTANCE)};
-			UINT offset[2] = {0,0};
-			ID3D11Buffer* buffers[2] = {vertexBuffer->GetBufferPointer() , instanceBuffer->GetBufferPointer()};
-
-			this->deviceContext->IASetVertexBuffers(0,2,buffers, strides, offset);
 		//------------------------------------------------------------------------------
 
 		D3DXMATRIX invertViewProj, viewProj; 
@@ -374,8 +413,6 @@ void program::render(float deltaTime)
 		shader->SetResource("depthMap", NULL);
 		this->deviceContext->OMSetBlendState(NULL, NULL, 0xffffffff);
 	//---------------------------------
-	SAFE_DELETE(instanceBuffer);
-	SAFE_DELETE(instance);
 	//fullscreen quad
 	//-------------------------------------------------------------------------------
 		mesh = new Vertex[6];
