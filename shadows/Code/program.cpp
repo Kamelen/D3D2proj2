@@ -390,7 +390,8 @@ void program::render(float deltaTime)
 		shader->SetResource("depthMap", NULL);
 		this->deviceContext->OMSetBlendState(NULL, NULL, 0xffffffff);
 	//---------------------------------
-
+	SAFE_DELETE(instanceBuffer);
+	SAFE_DELETE(instance);
 	//fullscreen quad
 	//-------------------------------------------------------------------------------
 		mesh = new Vertex[6];
